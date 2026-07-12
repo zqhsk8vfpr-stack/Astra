@@ -749,7 +749,7 @@ do
     world:toggle({ name = "custom skybox" })
 end
 
--- RAGE TAB: Movement (left) + Rage Mode (left) + Anti-Aim (right)
+-- RAGE TAB: Movement (left) + Rage Mode (left) + Anti-Aim (right) + Checks (right)
 do
     -- MOVEMENT SECTION (left)
     local movement = rage:section({ name = "movement", side = "left" })
@@ -828,7 +828,6 @@ do
         max = 300,
         tooltip = "The radius around your character where enemies will be automatically locked onto.",
     })
-    -- NEW: Toggle for FOV
     ragemode:toggle({
         name = "custom fov",
         flag = "rage_mode_customfov",
@@ -937,6 +936,33 @@ do
         flag = "rage_antiaim_legit",
         default = false,
         tooltip = "Subtle anti-aim with small jitter. Looks natural but still throws off enemy aim.",
+    })
+
+    -- CHECKS SECTION (right, below anti-aim)
+    local checks = rage:section({ name = "checks", side = "right" })
+    checks:toggle({
+        name = "knocked check",
+        flag = "rage_checks_knocked",
+        default = false,
+        tooltip = "Ignore enemies that are knocked down or crawling. Great for focusing on active threats.",
+    })
+    checks:toggle({
+        name = "friend check",
+        flag = "rage_checks_friend",
+        default = false,
+        tooltip = "Ignore players on your friends list. Prevents you from accidentally killing your friends.",
+    })
+    checks:toggle({
+        name = "crew check",
+        flag = "rage_checks_crew",
+        default = false,
+        tooltip = "Ignore players in your crew or group. Useful for team games.",
+    })
+    checks:toggle({
+        name = "team check",
+        flag = "rage_checks_team",
+        default = false,
+        tooltip = "Ignore teammates. Prevents you from team-killing.",
     })
 end
 
