@@ -78,6 +78,13 @@ do
         callback = function(val) getgenv().SmoothingType = val end,
     })
     
+    section:dropdown({
+        name = "smoothing direction",
+        flag = "legit_smoothingdirec",
+        default = false,
+        items = { "in", "out", "inout" },
+      })
+    
     section:toggle({
         name = "prediction",
         flag = "legit_aimbotpred",
