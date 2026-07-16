@@ -14,7 +14,7 @@ local misc = window:tab({ name = "misc" })
 
 -- LEGIT TAB 
 do
-    local section = legit:section({ name = "aimbot" })
+    local section = legit:section({ name = "camlock" })
     section:toggle({
         name = "enabled",
         flag = "legit_enabled",
