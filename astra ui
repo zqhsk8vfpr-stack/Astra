@@ -12,7 +12,9 @@ local esp = window:tab({ name = "esp" })
 local visuals = window:tab({ name = "visuals" })
 local misc = window:tab({ name = "misc" })
 
--- LEGIT TAB 
+-- ========================
+-- LEGIT TAB (camlock + silent aim + triggerbot + checks)
+-- ========================
 do
     local section = legit:section({ name = "camlock" })
     section:toggle({
@@ -24,14 +26,14 @@ do
     })
     
     section:keybind({
-    name = "key",
-    flag = "legit_key",
-    default = Enum.KeyCode.E,
-    tooltip = "key to lock on",
-    callback = function(newKey)
-        getgenv().AimbotKey = newKey.Name   -- stores "E", "F", etc.
-    end,
-})
+        name = "key",
+        flag = "legit_key",
+        default = Enum.KeyCode.E,
+        tooltip = "key to lock on",
+        callback = function(newKey)
+            getgenv().AimbotKey = newKey.Name   -- stores "E", "F", etc.
+        end,
+    })
     
     section:dropdown({
         name = "activation",
@@ -133,23 +135,7 @@ do
         callback = function(val) getgenv().TargetPriority = val end,
     })
     
-    section:dropdown({
-        name = "hitscan priority",
-        flag = "legit_hitscanpriority",
-        items = { "closest", "head", "body" },
-        multi = false,
-        tooltip = "the hitbox that the aim assist will consider aiming at first",
-        callback = function(val) getgenv().HitscanPriority = val end,
-    })
-        
-    section:dropdown({
-        name = "hitscan points",
-        flag = "legit_hitscanpoints",
-        items = { "head", "body", "arms", "legs" },
-        multi = true,
-        tooltip = "the hitboxes that the aim assist will consider at all",
-        callback = function(val) getgenv().HitscanPoints = val end,
-    })
+    -- ===== REMOVED hitscan priority and hitscan points (now use Configs tab multihitpart picker) =====
     
     section:slider({
         name = "enemy switching delay",
@@ -283,23 +269,7 @@ do
         callback = function(val) getgenv().SilentAimAutoPred = val end,
     })
     
-    section:dropdown({
-        name = "hitscan priority",
-        flag = "legit_silent_hitscanpriority",
-        items = { "closest", "head", "body" },
-        multi = false,
-        tooltip = "the hitbox that the silent aim will consider aiming at first",
-        callback = function(val) getgenv().SilentAimHitscanPriority = val end,
-    })
-    
-    section:dropdown({
-        name = "hitscan points",
-        flag = "legit_silent_hitscanpoints",
-        items = { "head", "body", "arms", "legs" },
-        multi = true,
-        tooltip = "the hitboxes that the silent aim will consider at all ",
-        callback = function(val) getgenv().SilentAimHitscanPoints = val end,
-    })
+    -- ===== REMOVED silent aim hitscan priority and hitscan points =====
     
     section:slider({
         name = "accuracy",
@@ -421,7 +391,9 @@ do
     })
 end
 
--- CHECKS SECTION (outside do block, but still part of legit tab)
+-- ========================
+-- CHECKS SECTION
+-- ========================
 local section = legit:section({ name = "checks", side = "left" })
     section:toggle({
         subsection = "checks",
@@ -471,7 +443,9 @@ local section = legit:section({ name = "checks", side = "left" })
         callback = function(val) getgenv().CrewCheck = val end,
     })
 
--- ESP TAB (with callbacks added)
+-- ========================
+-- ESP TAB (unchanged)
+-- ========================
 do
     local enemy = esp:section({ name = "enemy", fill = 0.5 })
     local team = esp:section({ name = "team", side = "right" })
@@ -745,7 +719,9 @@ do
             callback = function(col) getgenv().HighlightPrioritiesColor = col end })
 end
 
--- VISUALS TAB (with callbacks added to all elements)
+-- ========================
+-- VISUALS TAB (unchanged)
+-- ========================
 do
     local camera = visuals:section({ name = "camera", side = "left" })
     camera:toggle({ name = "toggle fov", flag = "toggle_fov", default = false,
@@ -799,7 +775,9 @@ do
     world:toggle({ name = "custom skybox", callback = function(val) getgenv().CustomSkybox = val end })
 end
 
--- RAGE TAB (callbacks added to all elements)
+-- ========================
+-- RAGE TAB (unchanged)
+-- ========================
 do
     local movement = rage:section({ name = "movement", side = "left" })
     movement:toggle({ name = "modify speed", flag = "rage_movement_speed_toggle", default = false,
@@ -858,7 +836,9 @@ do
         callback = function(val) getgenv().LegitAntiAim = val end })
 end
 
--- MISC TAB (callbacks added)
+-- ========================
+-- MISC TAB (unchanged)
+-- ========================
 do
     local panic = misc:section({ name = "panic", side = "left" })
     panic:toggle({ name = "panic mode", flag = "misc_panic", default = false,
@@ -877,7 +857,9 @@ do
         callback = function(val) getgenv().ModAction = val end })
 end
 
--- CONFIGS (unchanged except adding callbacks to theming toggles and sliders where missing)
+-- ========================
+-- CONFIGS TAB (unchanged)
+-- ========================
 do
     local configs = window:tab({ name = "configs" })
     local config = configs:section({ name = "Theming System", side = "right" })
@@ -939,14 +921,6 @@ do
     library:config_list_update()
 end
 
-for i = 1, 1 do
-    library:notification({ text = "Astra loaded..." })
-end
-
-legit.open_tab()
-
-
--- ... (the rest of the UI code)
 for i = 1, 1 do
     library:notification({ text = "Astra loaded..." })
 end
