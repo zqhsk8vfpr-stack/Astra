@@ -24,11 +24,14 @@ do
     })
     
     section:keybind({
-        name = "key",
-        flag = "legit_key",
-        default = Enum.KeyCode.E,
-        tooltip = "key to lock on",
-    })
+    name = "key",
+    flag = "legit_key",
+    default = Enum.KeyCode.E,
+    tooltip = "key to lock on",
+    callback = function(newKey)
+        getgenv().AimbotKey = newKey.Name   -- stores "E", "F", etc.
+    end,
+})
     
     section:dropdown({
         name = "activation",
