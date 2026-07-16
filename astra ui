@@ -28,8 +28,6 @@ do
         flag = "legit_key",
         default = Enum.KeyCode.E,
         tooltip = "key to lock on",
-        
-    
     })
     
     section:dropdown({
@@ -46,7 +44,6 @@ do
         callback = function(val) getgenv().SmoothnessEnabled = val end,
     })
     
-    -- FIXED: use slider instead of textbox
     section:slider({
         name = "smoothness X",
         flag = "legit_smoothnessX",
@@ -78,7 +75,6 @@ do
         callback = function(val) getgenv().EasingStyle = val end,
     })
     
-    -- FIXED: default must be an item, added callback
     section:dropdown({
         name = "easing direction",
         flag = "legit_easingdirection",
@@ -93,27 +89,30 @@ do
         callback = function(val) getgenv().Prediction = val end,
     })
     
-    -- FIXED: changed to slider
+    -- TEXTBOX: horizontal prediction (aimbot)
     section:textbox({
         name = "horizental prediction",
         flag = "legit_horizentalprediction",
-        default = 0.1,
-        min = 0,
-        max = 1,
-        interval = 0.0001,
+        default = "0.115",
         suffix = "",
-        callback = function(val) getgenv().HorizontalPrediction = val end,
+        callback = function(val)
+            local num = tonumber(val) or 0.115
+            flags["legit_horizentalprediction"] = num
+            getgenv().HorizontalPrediction = num
+        end,
     })
     
+    -- TEXTBOX: vertical prediction (aimbot)
     section:textbox({
         name = "vertical prediction",
         flag = "legit_verticalprediction",
-        default = 0.1,
-        min = 0,
-        max = 1,
-        interval = 0.0001,
+        default = "0.1638",
         suffix = "",
-        callback = function(val) getgenv().VerticalPrediction = val end,
+        callback = function(val)
+            local num = tonumber(val) or 0.1638
+            flags["legit_verticalprediction"] = num
+            getgenv().VerticalPrediction = num
+        end,
     })
      
     section:toggle({
@@ -149,7 +148,6 @@ do
         callback = function(val) getgenv().HitscanPoints = val end,
     })
     
-    -- FIXED: changed to slider
     section:slider({
         name = "enemy switching delay",
         suffix = "ms",
@@ -169,7 +167,6 @@ do
         callback = function(val) getgenv().TargetMovement = val end,
     })
     
-    -- FIXED: changed to slider
     section:slider({
         name = "target prediction inaccuracy",
         suffix = "%",
@@ -245,43 +242,47 @@ do
     
     section:toggle({
         name = "prediction",
-        flag = "legit_silent_prediction",   -- changed flag to be unique
+        flag = "legit_silent_prediction",
         default = false,
         callback = function(val) getgenv().SilentAimPrediction = val end,
     })
    
+    -- TEXTBOX: horizontal prediction (silent aim)
     section:textbox({
         name = "horizental",
         flag = "legit_silent_horizentalprediction",
-        default = 0.1,
-        min = 0,
-        max = 1,
-        interval = 0.0001,
+        default = "0.1378",
         suffix = "",
-        callback = function(val) getgenv().SilentAimHorizontalPred = val end,
+        callback = function(val)
+            local num = tonumber(val) or 0.1378
+            flags["legit_silent_horizentalprediction"] = num
+            getgenv().SilentAimHorizontalPred = num
+        end,
     })
     
+    -- TEXTBOX: vertical prediction (silent aim)
     section:textbox({
         name = "vertical",
         flag = "legit_silent_verticalprediction",
-        default = 0.1,
-        min = 0,
-        max = 1,
-        interval = 0.0001,
+        default = "0.1844",
         suffix = "",
-        callback = function(val) getgenv().SilentAimVerticalPred = val end,
+        callback = function(val)
+            local num = tonumber(val) or 0.1844
+            flags["legit_silent_verticalprediction"] = num
+            getgenv().SilentAimVerticalPred = num
+        end,
     })
     
     section:toggle({
         name = "auto prediction",
-        flag = "legit_silent_autoprediction",   -- unique flag
+        flag = "legit_silent_autoprediction",
         default = false,
         callback = function(val) getgenv().SilentAimAutoPred = val end,
     })
     
     section:dropdown({
         name = "hitscan priority",
-        flag = "legit_silent_hitscanpriority",   -- unique flag
+        flag = "legit_silent_hitscanpriority",
         items = { "closest", "head", "body" },
         multi = false,
         tooltip = "the hitbox that the silent aim will consider aiming at first",
@@ -290,7 +291,7 @@ do
     
     section:dropdown({
         name = "hitscan points",
-        flag = "legit_silent_hitscanpoints",   -- unique flag
+        flag = "legit_silent_hitscanpoints",
         items = { "head", "body", "arms", "legs" },
         multi = true,
         tooltip = "the hitboxes that the silent aim will consider at all ",
@@ -310,7 +311,7 @@ do
     
     section:toggle({
         name = "barrel fov",
-        flag = "legit_silent_barrelfov",   -- unique flag
+        flag = "legit_silent_barrelfov",
         default = false,
         tooltip = "bases fov from your barrel instead of camera",
         callback = function(val) getgenv().SilentAimBarrelFOV = val end,
@@ -457,14 +458,14 @@ local section = legit:section({ name = "checks", side = "left" })
         flag = "melee_check",
         default = false,
         callback = function(val) getgenv().MeleeCheck = val end,
-    })   -- FIXED: added closing brace and comma
+    })
 
     section:toggle({
         subsection = "checks",
         name = "crew check",
         flag = "crew_check",
         default = false,
-        callback = function(val) getgenv().CrewCheck = val end,   -- FIXED: getgrnv -> getgenv
+        callback = function(val) getgenv().CrewCheck = val end,
     })
 
 -- ESP TAB (with callbacks added)
@@ -814,7 +815,6 @@ do
         callback = function(val) getgenv().BunnyHop = val end })
     movement:toggle({ name = "infinite jump", flag = "rage_movement_infinitejump", default = false,
         callback = function(val) getgenv().InfiniteJump = val end })
-    -- FIXED: use 'movement' instead of undefined 'section'
     movement:toggle({ name = "auto armor", flag = "rage_autoarmor", default = false,
         callback = function(val) getgenv().AutoArmor = val end })
 
