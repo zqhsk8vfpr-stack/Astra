@@ -28,7 +28,7 @@ do
         flag = "legit_key",
         default = Enum.KeyCode.E,
         tooltip = "key to lock on",
-        callback = function(newKey)
+        
     
     })
     
