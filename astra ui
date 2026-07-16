@@ -941,3 +941,13 @@ for i = 1, 1 do
 end
 
 legit.open_tab()
+
+
+-- ... (the rest of the UI code)
+for i = 1, 1 do
+    library:notification({ text = "Astra loaded..." })
+end
+
+legit.open_tab()
+
+return library
