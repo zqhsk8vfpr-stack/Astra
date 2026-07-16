@@ -36,7 +36,7 @@ do
     section:dropdown({
         name = "activation",
         flag = "legit_aimbotactivation",
-        items = { "key press", "target visible" },
+        items = { "hold", "toggle" },
         multi = false,
         tooltip = "holds a specific key to enable on target visible only when target is within FOV ",
         callback = function(val) getgenv().Activation = val end,
