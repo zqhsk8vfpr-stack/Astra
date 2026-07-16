@@ -913,7 +913,7 @@ do
     configs_section:button({ name = "Unload Config", callback = function() library:load_config(old_config) end })
     configs_section:button({ name = "Unload Menu", callback = function() library:unload() end })
 
-    configs:hitpart_picker({ name = "Multihitpart Picker", side = "left", flag = "multihitpart_picker", default = { "Head" }, multi = true, type = "R6",
+    configs:hitpart_picker({ name = "Multihitpart Picker", side = "left", flag = "multihitpart_picker", default = { "Head" }, multi = true, type = "R15",
         callback = function(parts) table.foreach(parts, print) end })
     configs:hitpart_picker({ name = "Singlehitpart Picker", side = "right", flag = "singlehitpart_picker", default = { "Head" }, multi = false, type = "R15",
         callback = function(parts) table.foreach(parts, print) end })
