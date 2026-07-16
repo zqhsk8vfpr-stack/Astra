@@ -182,13 +182,7 @@ do
         tooltip = "makes sure the aimbot only helps if your thumb is actually swipping towards the enemy not when your looking away",
         callback = function(val) getgenv().MobileNearingEnemy = val end,
     })
-    section:toggle({
-        name = "barrel fov",
-        flag = "legit_barrelfov",
-        default = false,
-        tooltip = "bases fov from your barrel direction instead of camera direction",
-        callback = function(val) getgenv().BarrelFov = val end,
-    })
+
     
     section:toggle({
         name = "resolver",
