@@ -828,7 +828,7 @@ do
         callback = function(val) getgenv().RageLockRadius = val end })
     ragemode:toggle({ name = "custom fov", flag = "rage_mode_customfov", default = false,
         callback = function(val) getgenv().RageCustomFOV = val end })
-    ragemode:slider({ name = "fov", suffix = "°", flag = "rage_mode_fov", default = 360, min = 0, max = 360,
+    ragemode:slider({ name = "fov", suffix = "°", flag = "rage_mode_fov", default = 30, min = 0, max = 360,
         callback = function(val) getgenv().RageFOV = val end })
     ragemode:toggle({ name = "visible only", flag = "rage_mode_visibleonly", default = false,
         callback = function(val) getgenv().RageVisibleOnly = val end })
