@@ -29,8 +29,7 @@ do
         default = Enum.KeyCode.E,
         tooltip = "key to lock on",
         callback = function(newKey)
-            getgenv().AimbotKey = newKey.Name
-        end,
+    
     })
     
     section:dropdown({
