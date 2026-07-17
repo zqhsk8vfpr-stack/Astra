@@ -257,37 +257,50 @@ do
     })
     
     section:toggle({
-    name = "auto prediction",
-    flag = "legit_silent_autoprediction",
-    default = false,
-    callback = function(val) getgenv().SilentAimAutoPred = val end,
-})
+        name = "auto prediction",
+        flag = "legit_silent_autoprediction",
+        default = false,
+        callback = function(val) getgenv().SilentAimAutoPred = val end,
+    })
 
-section:toggle({
-    name = "gravity compensation",
-    flag = "legit_silent_gravity",
-    default = false,
-    tooltip = "compensates for bullet drop when enemies jump, aim lower to hit",
-    callback = function(val) getgenv().SilentAimGravity = val end,
-})
+    section:toggle({
+        name = "gravity compensation",
+        flag = "legit_silent_gravity",
+        default = false,
+        tooltip = "compensates for bullet drop when enemies jump, aim lower to hit",
+        callback = function(val) getgenv().SilentAimGravity = val end,
+    })
 
-section:slider({
-    name = "accuracy",
-    suffix = "%",
-    flag = "legit_silent_accuracy",
-    default = 70,
-    min = 0,
-    max = 100,
-    tooltip = "the chance that the hitscan priority will be considered before anything else",
-    callback = function(val) getgenv().SilentAimAccuracy = val end,
-})
     
     section:toggle({
-        name = "barrel fov",
-        flag = "legit_silent_barrelfov",
+        name = "airborne prediction",
+        flag = "legit_silent_airborne_prediction",
         default = false,
-        tooltip = "bases fov from your barrel instead of camera",
-        callback = function(val) getgenv().SilentAimBarrelFOV = val end,
+        tooltip = "use separate prediction when target is in the air",
+        callback = function(val) getgenv().SilentAimAirbornePred = val end,
+    })
+
+    section:slider({
+        name = "airborne multiplier",
+        suffix = "x",
+        flag = "legit_silent_airborne_multiplier",
+        default = 1.5,
+        min = 0.5,
+        max = 3.0,
+        interval = 0.05,
+        tooltip = "multiplier for prediction values when target is airborne",
+        callback = function(val) getgenv().SilentAimAirborneMult = val end,
+    })
+
+    section:slider({
+        name = "accuracy",
+        suffix = "%",
+        flag = "legit_silent_accuracy",
+        default = 70,
+        min = 0,
+        max = 100,
+        tooltip = "the chance that the hitscan priority will be considered before anything else",
+        callback = function(val) getgenv().SilentAimAccuracy = val end,
     })
     
     section:toggle({
