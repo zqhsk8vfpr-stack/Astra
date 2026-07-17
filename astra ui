@@ -31,7 +31,7 @@ do
         default = Enum.KeyCode.E,
         tooltip = "key to lock on",
         callback = function(newKey)
-            getgenv().AimbotKey = newKey.Name   -- stores "E", "F", etc.
+            getgenv().AimbotKey = newKey.Name
         end,
     })
     
@@ -94,7 +94,6 @@ do
         callback = function(val) getgenv().Prediction = val end,
     })
     
-    -- TEXTBOX: horizontal prediction (aimbot)
     section:textbox({
         name = "horizental prediction",
         flag = "legit_horizentalprediction",
@@ -107,7 +106,6 @@ do
         end,
     })
     
-    -- TEXTBOX: vertical prediction (aimbot)
     section:textbox({
         name = "vertical prediction",
         flag = "legit_verticalprediction",
@@ -134,8 +132,6 @@ do
         tooltip = "the player that the aim bot will consider aiming at first",
         callback = function(val) getgenv().TargetPriority = val end,
     })
-    
-    -- ===== REMOVED hitscan priority and hitscan points (now use Configs tab multihitpart picker) =====
     
     section:slider({
         name = "enemy switching delay",
@@ -236,7 +232,6 @@ do
         callback = function(val) getgenv().SilentAimPrediction = val end,
     })
    
-    -- TEXTBOX: horizontal prediction (silent aim)
     section:textbox({
         name = "horizental",
         flag = "legit_silent_horizentalprediction",
@@ -249,7 +244,6 @@ do
         end,
     })
     
-    -- TEXTBOX: vertical prediction (silent aim)
     section:textbox({
         name = "vertical",
         flag = "legit_silent_verticalprediction",
@@ -268,8 +262,6 @@ do
         default = false,
         callback = function(val) getgenv().SilentAimAutoPred = val end,
     })
-    
-    -- ===== REMOVED silent aim hitscan priority and hitscan points =====
     
     section:slider({
         name = "accuracy",
@@ -625,7 +617,7 @@ do
         callback = function(val) getgenv().DynamicArrowSize = val end,
     })
 
-    -- Team ESP (same pattern, I'll shorten for brevity but include all callbacks)
+    -- Team ESP (same pattern)
     team:toggle({ name = "enabled", flag = "team_esp", default = false, tooltip = "enables team esp",
         callback = function(val) getgenv().TeamESPEnabled = val end })
     team:toggle({ name = "bounding box", flag = "team_box", default = false, tooltip = "shows team boxes",
@@ -859,7 +851,7 @@ do
 end
 
 -- ========================
--- MISC TAB (with group check toggle added)
+-- MISC TAB (group check placed directly under "check mods on load")
 -- ========================
 do
     local panic = misc:section({ name = "panic", side = "left" })
@@ -875,11 +867,11 @@ do
         callback = function(val) getgenv().AntiModEnabled = val end })
     antimod:toggle({ name = "check mods on load", flag = "misc_antimod_checkonload", default = true,
         callback = function(val) getgenv().CheckModsOnLoad = val end })
-    antimod:dropdown({ name = "mod action", flag = "misc_antimod_action", items = { "notify", "crash", "server hop", "kick" }, multi = false, default = "notify",
-        callback = function(val) getgenv().ModAction = val end })
-    -- === GROUP CHECK TOGGLE (added) ===
+    -- === GROUP CHECK TOGGLE (placed directly under "check mods on load") ===
     antimod:toggle({ name = "group check", flag = "misc_antimod_groupcheck", default = false,
         callback = function(val) getgenv().GroupCheck = val end })
+    antimod:dropdown({ name = "mod action", flag = "misc_antimod_action", items = { "notify", "crash", "server hop", "kick" }, multi = false, default = "notify",
+        callback = function(val) getgenv().ModAction = val end })
 end
 
 -- ========================
