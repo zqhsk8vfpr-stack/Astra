@@ -257,22 +257,30 @@ do
     })
     
     section:toggle({
-        name = "auto prediction",
-        flag = "legit_silent_autoprediction",
-        default = false,
-        callback = function(val) getgenv().SilentAimAutoPred = val end,
-    })
-    
-    section:slider({
-        name = "accuracy",
-        suffix = "%",
-        flag = "legit_silent_accuracy",
-        default = 70,
-        min = 0,
-        max = 100,
-        tooltip = "the chance that the hitscan priority will be considered before anything else",
-        callback = function(val) getgenv().SilentAimAccuracy = val end,
-    })
+    name = "auto prediction",
+    flag = "legit_silent_autoprediction",
+    default = false,
+    callback = function(val) getgenv().SilentAimAutoPred = val end,
+})
+
+section:toggle({
+    name = "gravity compensation",
+    flag = "legit_silent_gravity",
+    default = false,
+    tooltip = "compensates for bullet drop when enemies jump, aim lower to hit",
+    callback = function(val) getgenv().SilentAimGravity = val end,
+})
+
+section:slider({
+    name = "accuracy",
+    suffix = "%",
+    flag = "legit_silent_accuracy",
+    default = 70,
+    min = 0,
+    max = 100,
+    tooltip = "the chance that the hitscan priority will be considered before anything else",
+    callback = function(val) getgenv().SilentAimAccuracy = val end,
+})
     
     section:toggle({
         name = "barrel fov",
