@@ -263,33 +263,15 @@ do
         callback = function(val) getgenv().SilentAimAutoPred = val end,
     })
 
-    section:toggle({
-        name = "gravity compensation",
-        flag = "legit_silent_gravity",
-        default = false,
-        tooltip = "compensates for bullet drop when enemies jump, aim lower to hit",
-        callback = function(val) getgenv().SilentAimGravity = val end,
-    })
-
-    
-    section:toggle({
-        name = "airborne prediction",
-        flag = "legit_silent_airborne_prediction",
-        default = false,
-        tooltip = "use separate prediction when target is in the air",
-        callback = function(val) getgenv().SilentAimAirbornePred = val end,
-    })
-
-    section:slider({
-        name = "airborne multiplier",
-        suffix = "x",
-        flag = "legit_silent_airborne_multiplier",
-        default = 1.5,
-        min = 0.5,
-        max = 3.0,
-        interval = 0.05,
-        tooltip = "multiplier for prediction values when target is airborne",
-        callback = function(val) getgenv().SilentAimAirborneMult = val end,
+    -- ADDED: air aim part dropdown (replaces gravity compensation & airborne multiplier)
+    section:dropdown({
+        name = "air aim part",
+        flag = "legit_silent_airaimpart",
+        items = { "Head", "HumanoidRootPart", "UpperTorso", "LowerTorso", "RightFoot", "LeftFoot", "RightUpperLeg", "LeftUpperLeg" },
+        multi = false,
+        default = "HumanoidRootPart",
+        tooltip = "aim at this part when target is airborne",
+        callback = function(val) getgenv().SilentAimAirAimPart = val end,
     })
 
     section:slider({
