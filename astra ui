@@ -771,7 +771,7 @@ do
 end
 
 -- ========================
--- RAGE TAB (with auto-armor sliders added)
+-- RAGE TAB (with auto-armor sliders + auto resolver + anti ground shot)
 -- ========================
 do
     local movement = rage:section({ name = "movement", side = "left" })
@@ -827,6 +827,14 @@ do
         callback = function(val) getgenv().RageFOV = val end })
     ragemode:toggle({ name = "visible only", flag = "rage_mode_visibleonly", default = false,
         callback = function(val) getgenv().RageVisibleOnly = val end })
+    -- === AUTO RESOLVER TOGGLE (added) ===
+    ragemode:toggle({
+        name = "auto resolver",
+        flag = "rage_autoresolver",
+        default = false,
+        tooltip = "automatically resolves velocity manipulation on targets",
+        callback = function(val) getgenv().RageAutoResolver = val end,
+    })
 
     local anti_aim = rage:section({ name = "anti-aim", side = "right" })
     anti_aim:toggle({ name = "enabled", flag = "rage_antiaim_enabled", default = false,
@@ -851,6 +859,14 @@ do
         callback = function(val) getgenv().AntiResolution = val end })
     anti_aim:toggle({ name = "legit anti aim", flag = "rage_antiaim_legit", default = false,
         callback = function(val) getgenv().LegitAntiAim = val end })
+    -- === ANTI GROUND SHOT TOGGLE (placed here) ===
+    anti_aim:toggle({
+        name = "anti ground shot",
+        flag = "legit_antigroundshot",
+        default = false,
+        tooltip = "prevents silent aim from shooting at the ground when target is behind terrain",
+        callback = function(val) getgenv().AntiGroundShot = val end,
+    })
 end
 
 -- ========================
