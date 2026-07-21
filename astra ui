@@ -29,7 +29,13 @@ do
         default = Enum.KeyCode.E,
         tooltip = "key to lock on",
         callback = function(newKey)
-            getgenv().AimbotKey = newKey.Name
+            -- FIX: check if it's actually an EnumItem
+            if newKey and type(newKey) == "userdata" and typeof(newKey) == "EnumItem" then
+                getgenv().AimbotKey = newKey.Name
+            else
+                -- fallback: keep default or do nothing
+                getgenv().AimbotKey = "E"
+            end
         end,
     })
 
@@ -638,9 +644,8 @@ do
     camera:slider({ name = "camera recoil reduction", min = 0, max = 100, default = 0, interval = 1,
         callback = function(val) getgenv().CameraRecoilReduction = val end })
 
-    -- WORLD SECTION REMOVED
-
-end -- end of VISUALS TAB
+    -- World section removed (as requested earlier)
+end
 
 -- MISC TAB
 do
@@ -648,7 +653,13 @@ do
     panic:toggle({ name = "panic mode", flag = "misc_panic", default = false,
         callback = function(val) getgenv().PanicMode = val end })
     panic:keybind({ name = "panic key", flag = "misc_panic_key", default = Enum.KeyCode.P,
-        callback = function(key) getgenv().PanicKey = key end })
+        callback = function(key)
+            if key and type(key) == "userdata" and typeof(key) == "EnumItem" then
+                getgenv().PanicKey = key
+            else
+                getgenv().PanicKey = Enum.KeyCode.P
+            end
+        end })
     panic:dropdown({ name = "panic mode selection", flag = "misc_panic_selection", items = { "disable all", "unload" }, multi = false, default = "disable all",
         callback = function(val) getgenv().PanicAction = val end })
 
