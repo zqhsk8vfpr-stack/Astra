@@ -8,13 +8,10 @@ local window = library:window({
 
 local legit = window:tab({ name = "legit" })
 local rage = window:tab({ name = "rage" })
-local esp = window:tab({ name = "esp" })
 local visuals = window:tab({ name = "visuals" })
 local misc = window:tab({ name = "misc" })
 
--- ========================
 -- LEGIT TAB
--- ========================
 do
     -- Camlock section
     local section = legit:section({ name = "camlock" })
@@ -71,17 +68,6 @@ do
         interval = 0.001,
         float = true,
         callback = function(val) getgenv().SmoothnessY = val end,
-    })
-
-    -- NEW: part selection mode
-    section:dropdown({
-        name = "part selection mode",
-        flag = "legit_part_selection_mode",
-        items = { "closest", "random", "cycle" },
-        multi = false,
-        default = "closest",
-        tooltip = "how the multihitpart picker chooses a part",
-        callback = function(val) getgenv().PartSelectionMode = val end,
     })
 
     section:dropdown({
@@ -192,22 +178,6 @@ do
         callback = function(val) getgenv().MobileNearingEnemy = val end,
     })
 
-    section:toggle({
-        name = "barrel fov",
-        flag = "legit_barrelfov",
-        default = false,
-        tooltip = "use barrel direction for FOV",
-        callback = function(val) getgenv().BarrelFov = val end,
-    })
-
-    section:toggle({
-        name = "resolver",
-        flag = "legit_resolver",
-        default = false,
-        tooltip = "resolve velocity manipulation",
-        callback = function(val) getgenv().Resolver = val end,
-    })
-
     -- Silent aim section
     local section_silent = legit:section({ name = "silent aim", side = "right" })
     section_silent:toggle({
@@ -305,14 +275,6 @@ do
         default = true,
         tooltip = "use real mouse movement",
         callback = function(val) getgenv().SilentAimAntiAimView = val end,
-    })
-
-    section_silent:toggle({
-        name = "resolver",
-        flag = "legit_silentaimresolver",
-        default = false,
-        tooltip = "resolve velocity manipulation for silent aim",
-        callback = function(val) getgenv().SilentAimResolver = val end,
     })
 
     section_silent:toggle({
@@ -433,9 +395,7 @@ do
     })
 end
 
--- ========================
 -- RAGE TAB
--- ========================
 do
     local movement = rage:section({ name = "movement", side = "left" })
     movement:toggle({
@@ -462,7 +422,6 @@ do
         max = 200,
         callback = function(val) getgenv().JumpPower = val end,
     })
-    -- NEW: jump power toggle
     movement:toggle({
         name = "modify jump",
         flag = "rage_movement_jump_toggle",
@@ -663,176 +622,7 @@ do
     })
 end
 
--- ========================
--- ESP TAB
--- ========================
-do
-    local enemy = esp:section({ name = "enemy", fill = 0.5 })
-    local team = esp:section({ name = "team", side = "right" })
-    local esp_settings = esp:section({ name = "esp settings", fill = 0.1, side = "right" })
-
-    enemy:toggle({ name = "enabled", flag = "enemy_esp", default = false,
-        callback = function(val) getgenv().EnemyESPEnabled = val end })
-    enemy:toggle({ name = "bounding box", flag = "enemy_box", default = false,
-        callback = function(val) getgenv().EnemyBox = val end })
-        :colorpicker({ flag = "enemy_boxcolor", color = Color3.new(1, 0, 0),
-            callback = function(col) getgenv().EnemyBoxColor = col end })
-    enemy:toggle({ name = "filled bounding box", flag = "enemy_filledbox", default = false,
-        callback = function(val) getgenv().EnemyFilledBox = val end })
-        :colorpicker({ object = "filled bounding box", name = "filled box", flag = "enemy_filledboxcolor",
-            color = Color3.new(1, 0, 0), transparency = 0.8,
-            callback = function(col) getgenv().EnemyFilledBoxColor = col end })
-    enemy:toggle({ name = "health bar", flag = "enemy_healthbar", default = false,
-        callback = function(val) getgenv().EnemyHealthBar = val end })
-        :colorpicker({ object = "health bar", flag = "enemy_lowhealth", color = Color3.fromRGB(255,100,100),
-            callback = function(col) getgenv().EnemyLowHealthColor = col end })
-        :colorpicker({ object = "health bar", flag = "enemy_fullhealth", color = Color3.fromRGB(100,255,100),
-            callback = function(col) getgenv().EnemyFullHealthColor = col end })
-    enemy:toggle({ name = "gradient health bar", flag = "enemy_gradienthealthbar", default = false,
-        callback = function(val) getgenv().EnemyGradientHealthBar = val end })
-    enemy:toggle({ name = "health number", flag = "enemy_healthnumber", default = false,
-        callback = function(val) getgenv().EnemyHealthNumber = val end })
-        :colorpicker({ object = "health number", flag = "enemy_healthnumbercolor", color = Color3.new(1,1,1),
-            callback = function(col) getgenv().EnemyHealthNumberColor = col end })
-    enemy:toggle({ name = "display name", flag = "enemy_name", default = false,
-        callback = function(val) getgenv().EnemyDisplayName = val end })
-        :colorpicker({ object = "display name", flag = "enemy_namecolor", color = Color3.new(1,1,1),
-            callback = function(col) getgenv().EnemyNameColor = col end })
-    enemy:toggle({ name = "held weapon", flag = "enemy_heldweapon", default = false,
-        callback = function(val) getgenv().EnemyHeldWeapon = val end })
-    enemy:toggle({ name = "distance", flag = "enemy_distance", default = false,
-        callback = function(val) getgenv().EnemyDistance = val end })
-    enemy:toggle({ name = "exploiting", flag = "enemy_exploit", default = false,
-        callback = function(val) getgenv().EnemyExploiting = val end })
-        :colorpicker({ object = "exploiting", flag = "enemy_exploitcolor", color = Color3.new(1,0,0),
-            callback = function(col) getgenv().EnemyExploitColor = col end })
-    enemy:toggle({ name = "chams", flag = "enemy_chams", default = false,
-        callback = function(val) getgenv().EnemyChams = val end })
-        :colorpicker({ object = "chams", flag = "enemy_innerchamcolor", color = Color3.fromRGB(100,0,0), transparency = 155/255,
-            callback = function(col) getgenv().EnemyInnerChamColor = col end })
-        :colorpicker({ object = "chams", flag = "enemy_outerchamcolor", color = Color3.fromRGB(255,0,0), transparency = 0,
-            callback = function(col) getgenv().EnemyOuterChamColor = col end })
-    enemy:toggle({ name = "skeleton", flag = "enemy_skeleton", default = false,
-        callback = function(val) getgenv().EnemySkeleton = val end })
-        :colorpicker({ object = "skeleton", flag = "enemy_skeletoncolor", color = Color3.fromRGB(236,251,136),
-            callback = function(col) getgenv().EnemySkeletonColor = col end })
-    enemy:toggle({ name = "snap lines", flag = "enemy_snaplines", default = false,
-        callback = function(val) getgenv().EnemySnapLines = val end })
-        :colorpicker({ object = "snap lines", flag = "enemy_snaplinescolor", color = Color3.new(1,1,1), transparency = 0,
-            callback = function(col) getgenv().EnemySnapLinesColor = col end })
-    enemy:toggle({ name = "view angle", flag = "enemy_viewangle", default = false,
-        callback = function(val) getgenv().EnemyViewAngle = val end })
-        :colorpicker({ object = "view angle", flag = "enemy_viewanglecolor", color = Color3.new(1,1,1),
-            callback = function(col) getgenv().EnemyViewAngleColor = col end })
-    enemy:toggle({ name = "head dot", flag = "enemy_headdot", default = false,
-        callback = function(val) getgenv().EnemyHeadDot = val end })
-        :colorpicker({ object = "head dot", flag = "enemy_headdotcolor", color = Color3.new(1,0,0),
-            callback = function(col) getgenv().EnemyHeadDotColor = col end })
-    enemy:toggle({ name = "out of view", flag = "enemy_oov", default = false,
-        callback = function(val) getgenv().EnemyOutOfView = val end })
-        :colorpicker({ object = "out of view", flag = "enemy_oovcolor", color = Color3.new(1,1,1),
-            callback = function(col) getgenv().EnemyOutOfViewColor = col end })
-    enemy:toggle({ name = "weapon names", flag = "enemy_weaponnames", default = false,
-        callback = function(val) getgenv().EnemyWeaponNames = val end })
-        :colorpicker({ object = "weapon names", flag = "enemy_weaponnamecolor", color = Color3.fromRGB(255,255,255),
-            callback = function(col) getgenv().EnemyWeaponNameColor = col end })
-    enemy:slider({ name = "arrow distance", suffix = "%", flag = "arrow_distance", value = 30, minimum = 1, maximum = 100,
-        callback = function(val) getgenv().ArrowDistance = val end })
-    enemy:slider({ name = "arrow size", suffix = "%", flag = "arrow_size", value = 30, minimum = 1, maximum = 100,
-        callback = function(val) getgenv().ArrowSize = val end })
-    enemy:toggle({ name = "dynamic arrow size", flag = "enemy_dynamicarrowsize", default = false,
-        callback = function(val) getgenv().DynamicArrowSize = val end })
-
-    -- Team ESP
-    team:toggle({ name = "enabled", flag = "team_esp", default = false,
-        callback = function(val) getgenv().TeamESPEnabled = val end })
-    team:toggle({ name = "bounding box", flag = "team_box", default = false,
-        callback = function(val) getgenv().TeamBox = val end })
-        :colorpicker({ object = "bounding box", name = "box", flag = "team_boxcolor", color = Color3.new(0,1,0),
-            callback = function(col) getgenv().TeamBoxColor = col end })
-    team:toggle({ name = "filled bounding box", flag = "team_filledbox", default = false,
-        callback = function(val) getgenv().TeamFilledBox = val end })
-        :colorpicker({ object = "filled bounding box", name = "filled box", flag = "team_filledboxcolor", color = Color3.new(0,1,0), transparency = 0.8,
-            callback = function(col) getgenv().TeamFilledBoxColor = col end })
-    team:toggle({ name = "health bar", flag = "team_healthbar", default = false,
-        callback = function(val) getgenv().TeamHealthBar = val end })
-        :colorpicker({ object = "health bar", name = "low health", flag = "team_lowhealth", color = Color3.fromRGB(255,100,100),
-            callback = function(col) getgenv().TeamLowHealthColor = col end })
-        :colorpicker({ object = "health bar", name = "full health", flag = "team_fullhealth", color = Color3.fromRGB(100,255,100),
-            callback = function(col) getgenv().TeamFullHealthColor = col end })
-    team:toggle({ name = "gradient health bar", flag = "team_gradienthealthbar", default = false,
-        callback = function(val) getgenv().TeamGradientHealthBar = val end })
-    team:toggle({ name = "health number", flag = "team_healthnumber", default = false,
-        callback = function(val) getgenv().TeamHealthNumber = val end })
-        :colorpicker({ object = "health number", name = "health number", flag = "team_healthnumbercolor", color = Color3.new(1,1,1),
-            callback = function(col) getgenv().TeamHealthNumberColor = col end })
-    team:toggle({ name = "display name", flag = "team_name", default = false,
-        callback = function(val) getgenv().TeamDisplayName = val end })
-        :colorpicker({ object = "display name", name = "name", flag = "team_namecolor", color = Color3.new(1,1,1),
-            callback = function(col) getgenv().TeamNameColor = col end })
-    team:toggle({ name = "held weapon", flag = "team_heldweapon", default = false,
-        callback = function(val) getgenv().TeamHeldWeapon = val end })
-        :colorpicker({ object = "held weapon", name = "held weapon", flag = "team_heldweaponcolor", color = Color3.new(1,1,1),
-            callback = function(col) getgenv().TeamHeldWeaponColor = col end })
-    team:toggle({ name = "distance", flag = "team_distance", default = false,
-        callback = function(val) getgenv().TeamDistance = val end })
-        :colorpicker({ object = "distance", name = "distance", flag = "team_distancecolor", color = Color3.new(1,1,1),
-            callback = function(col) getgenv().TeamDistanceColor = col end })
-    team:toggle({ name = "exploiting", flag = "team_exploit", default = false,
-        callback = function(val) getgenv().TeamExploiting = val end })
-        :colorpicker({ object = "exploiting", name = "exploit flag", flag = "team_exploitcolor", color = Color3.new(1,0,0),
-            callback = function(col) getgenv().TeamExploitColor = col end })
-    team:toggle({ name = "chams", flag = "team_chams", default = false,
-        callback = function(val) getgenv().TeamChams = val end })
-        :colorpicker({ object = "chams", name = "inner cham", flag = "team_innerchamcolor", color = Color3.fromRGB(0,100,0), transparency = 155/255,
-            callback = function(col) getgenv().TeamInnerChamColor = col end })
-        :colorpicker({ object = "chams", name = "outer cham", flag = "team_outerchamcolor", color = Color3.fromRGB(0,255,0), transparency = 0,
-            callback = function(col) getgenv().TeamOuterChamColor = col end })
-    team:toggle({ name = "skeleton", flag = "team_skeleton", default = false,
-        callback = function(val) getgenv().TeamSkeleton = val end })
-        :colorpicker({ object = "skeleton", name = "skeleton", flag = "team_skeletoncolor", color = Color3.fromRGB(236,251,136),
-            callback = function(col) getgenv().TeamSkeletonColor = col end })
-    team:toggle({ name = "view angle", flag = "team_viewangle", default = false,
-        callback = function(val) getgenv().TeamViewAngle = val end })
-        :colorpicker({ object = "view angle", name = "view angle", flag = "team_viewanglecolor", color = Color3.new(1,1,1),
-            callback = function(col) getgenv().TeamViewAngleColor = col end })
-    team:toggle({ name = "head dot", flag = "team_headdot", default = false,
-        callback = function(val) getgenv().TeamHeadDot = val end })
-        :colorpicker({ object = "head dot", name = "head dot", flag = "team_headdotcolor", color = Color3.new(0,1,0),
-            callback = function(col) getgenv().TeamHeadDotColor = col end })
-
-    -- ESP settings
-    esp_settings:slider({ name = "max hp visiblity cap", suffix = "hp", flag = "espsettings_maxhp", value = 98, minimum = 0, maximum = 100,
-        callback = function(val) getgenv().ESPMaxHPVisibilityCap = val end })
-    esp_settings:dropdown({ name = "text font", flag = "espsettings_font", items = { "Plex", "Monospace", "System", "UI" }, multi = false,
-        callback = function(val) getgenv().ESPTextFont = val end })
-    esp_settings:dropdown({ name = "text case", flag = "espsettings_case", items = { "lowercase", "UPPERCASE", "Normal" }, multi = false,
-        callback = function(val) getgenv().ESPTextCase = val end })
-    esp_settings:slider({ name = "text size", flag = "espsettings_size", value = 13, minimum = 1, maximum = 40,
-        callback = function(val) getgenv().ESPTextSize = val end })
-    esp_settings:dropdown({ name = "flag text font", flag = "espsettings_flagfont", items = { "Plex", "Monospace", "System", "UI" }, multi = false,
-        callback = function(val) getgenv().ESPFlagTextFont = val end })
-    esp_settings:dropdown({ name = "flag text case", flag = "espsettings_flagcase", items = { "lowercase", "UPPERCASE", "Normal" }, multi = false,
-        callback = function(val) getgenv().ESPFlagTextCase = val end })
-    esp_settings:slider({ name = "flag text size", flag = "espsettings_flagsize", value = 13, minimum = 1, maximum = 40,
-        callback = function(val) getgenv().ESPFlagTextSize = val end })
-    esp_settings:toggle({ name = "highlight aimbot target", flag = "espsettings_showaimbottarget", default = false,
-        callback = function(val) getgenv().HighlightAimbotTarget = val end })
-        :colorpicker({ object = "highlight aimbot target", name = "aimbot target", flag = "espsettings_showaimbottargetcolor", color = Color3.new(1,0,0),
-            callback = function(col) getgenv().HighlightAimbotTargetColor = col end })
-    esp_settings:toggle({ name = "highlight friendlies", flag = "espsettings_showfriendlies", default = false,
-        callback = function(val) getgenv().HighlightFriendlies = val end })
-        :colorpicker({ object = "highlight friendlies", name = "friendlies", flag = "espsettings_showfriendliescolor", color = Color3.fromRGB(120,189,245),
-            callback = function(col) getgenv().HighlightFriendliesColor = col end })
-    esp_settings:toggle({ name = "highlight priorities", flag = "espsettings_showpriorities", default = false,
-        callback = function(val) getgenv().HighlightPriorities = val end })
-        :colorpicker({ object = "highlight priorities", name = "priorities", flag = "espsettings_showprioritiescolor", color = Color3.fromRGB(245,239,120),
-            callback = function(col) getgenv().HighlightPrioritiesColor = col end })
-end
-
--- ========================
 -- VISUALS TAB
--- ========================
 do
     local camera = visuals:section({ name = "camera", side = "left" })
     camera:toggle({ name = "toggle fov", flag = "toggle_fov", default = false,
@@ -844,8 +634,7 @@ do
     camera:slider({ name = "vertical aspect ratio", min = 0, max = 200, default = 100, interval = 1,
         callback = function(val) getgenv().VerticalAspectRatio = val end })
     camera:toggle({ name = "remove camera bob", callback = function(val) getgenv().RemoveCameraBob = val end })
-    camera:toggle({ name = "remove ads fov", callback = function(val) getgenv().RemoveADSFOV = val end })
-    camera:toggle({ name = "remove visual suppression", callback = function(val) getgenv().RemoveVisualSuppression = val end })
+    -- REMOVED the stray "toggle" line
     camera:toggle({ name = "reduce camera recoil", callback = function(val) getgenv().ReduceCameraRecoil = val end })
     camera:slider({ name = "camera recoil reduction", min = 0, max = 100, default = 0, interval = 1,
         callback = function(val) getgenv().CameraRecoilReduction = val end })
@@ -886,9 +675,7 @@ do
     world:toggle({ name = "custom skybox", callback = function(val) getgenv().CustomSkybox = val end })
 end
 
--- ========================
 -- MISC TAB
--- ========================
 do
     local panic = misc:section({ name = "panic", side = "left" })
     panic:toggle({ name = "panic mode", flag = "misc_panic", default = false,
@@ -909,9 +696,7 @@ do
         callback = function(val) getgenv().ModAction = val end })
 end
 
--- ========================
 -- CONFIGS TAB
--- ========================
 do
     local configs = window:tab({ name = "configs" })
     local config = configs:section({ name = "Theming System", side = "right" })
