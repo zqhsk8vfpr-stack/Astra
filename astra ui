@@ -13,18 +13,19 @@ local visuals = window:tab({ name = "visuals" })
 local misc = window:tab({ name = "misc" })
 
 -- ========================
--- LEGIT TAB (camlock + silent aim + triggerbot + checks)
+-- LEGIT TAB
 -- ========================
 do
+    -- Camlock section
     local section = legit:section({ name = "camlock" })
     section:toggle({
         name = "enabled",
         flag = "legit_enabled",
         default = false,
-        tooltip = "master switch for aim assist, helps with aiming by moving your mouse for you based on the below settings",
+        tooltip = "master switch for aim assist",
         callback = function(val) getgenv().Enabled = val end,
     })
-    
+
     section:keybind({
         name = "key",
         flag = "legit_key",
@@ -34,21 +35,22 @@ do
             getgenv().AimbotKey = newKey.Name
         end,
     })
-    
+
     section:dropdown({
         name = "activation",
         flag = "legit_aimbotactivation",
         items = { "hold", "toggle" },
         multi = false,
-        tooltip = "holds a specific key to enable on target visible only when target is within FOV ",
+        tooltip = "hold to enable or toggle on/off",
         callback = function(val) getgenv().Activation = val end,
     })
+
     section:toggle({
         name = "smoothness",
         flag = "legit_smoothness",
         callback = function(val) getgenv().SmoothnessEnabled = val end,
     })
-    
+
     section:slider({
         name = "smoothness X",
         flag = "legit_smoothnessX",
@@ -59,7 +61,7 @@ do
         float = true,
         callback = function(val) getgenv().SmoothnessX = val end,
     })
-    
+
     section:slider({
         name = "smoothness Y",
         flag = "legit_smoothnessY",
@@ -70,16 +72,27 @@ do
         float = true,
         callback = function(val) getgenv().SmoothnessY = val end,
     })
-    
+
+    -- NEW: part selection mode
+    section:dropdown({
+        name = "part selection mode",
+        flag = "legit_part_selection_mode",
+        items = { "closest", "random", "cycle" },
+        multi = false,
+        default = "closest",
+        tooltip = "how the multihitpart picker chooses a part",
+        callback = function(val) getgenv().PartSelectionMode = val end,
+    })
+
     section:dropdown({
         name = "easingstyle",
         flag = "legit_easingstyle",
         items = { "exponential", "linear", "bounce", "sine", "cubic", "elastic", "quad", "quart", "back" },
         multi = false,
-        tooltip = "the type of smoothing of the aim aim assist",
+        tooltip = "smoothing curve for aim assist",
         callback = function(val) getgenv().EasingStyle = val end,
     })
-    
+
     section:dropdown({
         name = "easing direction",
         flag = "legit_easingdirection",
@@ -87,13 +100,13 @@ do
         items = { "in", "out", "inout" },
         callback = function(val) getgenv().EasingDirection = val end,
     })
-    
+
     section:toggle({
         name = "prediction",
         flag = "legit_prediction",
         callback = function(val) getgenv().Prediction = val end,
     })
-    
+
     section:textbox({
         name = "horizental prediction",
         flag = "legit_horizentalprediction",
@@ -105,7 +118,7 @@ do
             getgenv().HorizontalPrediction = num
         end,
     })
-    
+
     section:textbox({
         name = "vertical prediction",
         flag = "legit_verticalprediction",
@@ -117,22 +130,22 @@ do
             getgenv().VerticalPrediction = num
         end,
     })
-     
+
     section:toggle({
         name = "auto prediction",
         flag = "legit_autoprediction",
         callback = function(val) getgenv().AutoPrediction = val end,
     })
-    
+
     section:dropdown({
         name = "target priority",
         flag = "legit_targetpriority",
         items = { "closest", "enemy look direction" },
         multi = false,
-        tooltip = "the player that the aim bot will consider aiming at first",
+        tooltip = "which enemy to prioritize",
         callback = function(val) getgenv().TargetPriority = val end,
     })
-    
+
     section:slider({
         name = "enemy switching delay",
         suffix = "ms",
@@ -140,18 +153,18 @@ do
         default = 100,
         min = 0,
         max = 2000,
-        tooltip = "how long the aim assist will wait before locking onto a new player",
+        tooltip = "time before switching to a new target",
         callback = function(val) getgenv().EnemySwitchingDelay = val end,
     })
-    
+
     section:toggle({
         name = "target movement",
         flag = "legit_targetmovement",
         default = false,
-        tooltip = "will predict the movement of the target and will compensate for it",
+        tooltip = "predict target movement",
         callback = function(val) getgenv().TargetMovement = val end,
     })
-    
+
     section:slider({
         name = "target prediction inaccuracy",
         suffix = "%",
@@ -159,80 +172,82 @@ do
         default = 80,
         min = 0,
         max = 100,
-        tooltip = "how accurate the movement prediction adjustment is",
+        tooltip = "inaccuracy of movement prediction",
         callback = function(val) getgenv().TargetPredictionInaccuracy = val end,
     })
-    
+
     section:toggle({
         name = "mobile thumb movement",
         flag = "legit_mobilethumbmovement",
         default = false,
-        tooltip = "saves you from the aimbot going crazy. turn this on so the aimbot ONLY kicks in when your actually swipping",
+        tooltip = "only aim when thumb is moving",
         callback = function(val) getgenv().MobileThumbMovement = val end,
     })
-    
+
     section:toggle({
         name = "mobile nearing enemy",
         flag = "legit_mobilenearingenemy",
         default = false,
-        tooltip = "makes sure the aimbot only helps if your thumb is actually swipping towards the enemy not when your looking away",
+        tooltip = "only help if thumb is swiping towards enemy",
         callback = function(val) getgenv().MobileNearingEnemy = val end,
     })
+
     section:toggle({
         name = "barrel fov",
         flag = "legit_barrelfov",
         default = false,
-        tooltip = "bases fov from your barrel direction instead of camera direction",
+        tooltip = "use barrel direction for FOV",
         callback = function(val) getgenv().BarrelFov = val end,
     })
-    
+
     section:toggle({
         name = "resolver",
         flag = "legit_resolver",
         default = false,
-        tooltip = "resolves velocity manipulation",
+        tooltip = "resolve velocity manipulation",
         callback = function(val) getgenv().Resolver = val end,
     })
 
-    local section = legit:section({ name = "silent aim", side = "right" })
-    section:toggle({
+    -- Silent aim section
+    local section_silent = legit:section({ name = "silent aim", side = "right" })
+    section_silent:toggle({
         name = "silent aim",
         flag = "legit_silentaim",
         default = false,
-        tooltip = "master switch for silent aim, helps with aiming by automatically redirecting bullets based on the below settings",
+        tooltip = "redirect bullets automatically",
         callback = function(val) getgenv().SilentAim = val end,
     })
-    
-    section:slider({
+
+    section_silent:slider({
         name = "hit chance",
         suffix = "%",
         flag = "legit_hitchance",
         default = 75,
         min = 0,
         max = 100,
-        tooltip = "the chance that the silent aim will attempt to redirect a bullet",
+        tooltip = "chance to redirect a bullet",
         callback = function(val) getgenv().HitChance = val end,
     })
-    
-    section:slider({
+
+    section_silent:slider({
         name = "anti curve",
         suffix = "°",
         flag = "legit_anticurve",
         default = 8,
         min = 0,
         max = 90,
-        tooltip = "prevents the silent aim from curving bullets around corners. 0° = off, higher values = more aggressive anti-curve.",
+        tooltip = "prevent curving bullets around corners",
         callback = function(val) getgenv().AntiCurve = val end,
     })
-    
-    section:toggle({
+
+    section_silent:toggle({
         name = "prediction",
         flag = "legit_silent_prediction",
         default = false,
         callback = function(val) getgenv().SilentAimPrediction = val end,
     })
-   
-    section:textbox({
+
+    section_silent:textbox({
         name = "horizental",
         flag = "legit_silent_horizentalprediction",
         default = "0.1378",
@@ -243,8 +258,8 @@ do
             getgenv().SilentAimHorizontalPred = num
         end,
     })
-    
-    section:textbox({
+
+    section_silent:textbox({
         name = "vertical",
         flag = "legit_silent_verticalprediction",
         default = "0.1844",
@@ -255,16 +270,15 @@ do
             getgenv().SilentAimVerticalPred = num
         end,
     })
-    
-    section:toggle({
+
+    section_silent:toggle({
         name = "auto prediction",
         flag = "legit_silent_autoprediction",
         default = false,
         callback = function(val) getgenv().SilentAimAutoPred = val end,
     })
 
-    -- ADDED: air aim part dropdown (replaces gravity compensation & airborne multiplier)
-    section:dropdown({
+    section_silent:dropdown({
         name = "air aim part",
         flag = "legit_silent_airaimpart",
         items = { "Head", "HumanoidRootPart", "UpperTorso", "LowerTorso", "RightFoot", "LeftFoot", "RightUpperLeg", "LeftUpperLeg" },
@@ -274,53 +288,52 @@ do
         callback = function(val) getgenv().SilentAimAirAimPart = val end,
     })
 
-    section:slider({
+    section_silent:slider({
         name = "accuracy",
         suffix = "%",
         flag = "legit_silent_accuracy",
         default = 70,
         min = 0,
         max = 100,
-        tooltip = "the chance that the hitscan priority will be considered before anything else",
+        tooltip = "accuracy of the redirect",
         callback = function(val) getgenv().SilentAimAccuracy = val end,
     })
-    
-    section:toggle({
+
+    section_silent:toggle({
         name = "anti aimview",
         flag = "legit_antiaimview",
         default = true,
-        tooltip = "uses your real mouse movement",
+        tooltip = "use real mouse movement",
         callback = function(val) getgenv().SilentAimAntiAimView = val end,
     })
-    
-    section:toggle({
+
+    section_silent:toggle({
         name = "resolver",
         flag = "legit_silentaimresolver",
         default = false,
-        tooltip = "resolves velocity manipulation",
+        tooltip = "resolve velocity manipulation for silent aim",
         callback = function(val) getgenv().SilentAimResolver = val end,
     })
-    
-    section:toggle({
+
+    section_silent:toggle({
         name = "instant hit [not coded]",
         flag = "legit_silentinstanthit",
         default = false,
-        tooltip = "instantly hits your shots. not garunteed to be undetected",
+        tooltip = "instant hit (may be detected)",
         callback = function(val) getgenv().SilentAimInstantHit = val end,
     })
 
-    local section = legit:section({ name = "triggerbot", side = "right" })
-    section:toggle({
-        subsection = "trigger bot",
+    -- Triggerbot section
+    local section_trigger = legit:section({ name = "triggerbot", side = "right" })
+    section_trigger:toggle({
         name = "enabled",
         flag = "legit_triggerbot",
         default = false,
-        tooltip = "master switch for trigger bot, helps with shooting by automatically clicking when an enemy intersects your bullet path",
+        tooltip = "auto‑shoot when crosshair is over enemy",
         callback = function(val) getgenv().TriggerbotEnabled = val end,
     })
-    
-    section:slider({
-        subsection = "trigger bot",
+
+    section_trigger:slider({
         name = "reaction time",
         suffix = "ms",
         flag = "legit_triggerbotspeed",
@@ -328,364 +341,467 @@ do
         min = 0,
         max = 400,
         custom = { ["0"] = "off" },
-        tooltip = "how long an enemy must intersect your bullet path before automatically clicking",
+        tooltip = "delay before shooting",
         callback = function(val) getgenv().TriggerbotReactionTime = val end,
     })
-    
-    section:dropdown({
-        subsection = "trigger bot",
+
+    section_trigger:dropdown({
         name = "triggerbot hitboxes",
         flag = "legit_triggerbotpoints",
         items = { "head", "body", "arms", "legs" },
         multi = true,
-        tooltip = "the hitboxes that the triggerbot will automatically click on",
+        tooltip = "which hitboxes to aim at",
         callback = function(val) getgenv().TriggerbotHitboxes = val end,
     })
 
-    section:toggle({
-        subsection = "trigger bot",
+    section_trigger:toggle({
         name = "magnet triggerbot",
         flag = "legit_magnet",
         default = false,
-        tooltip = "master switch for the magnet, helps with aiming by applying a custom fov, smoothing and hitscan priority to the aim assist on triggerbot keybind",
+        tooltip = "enable magnet aim assist on triggerbot key",
         callback = function(val) getgenv().MagnetEnabled = val end,
     })
-   
-    section:slider({
-        subsection = "trigger bot",
+
+    section_trigger:slider({
         name = "magnet fov",
         suffix = "°",
         flag = "legit_magnetfov",
         default = 80,
         min = 0,
         max = 180,
-        tooltip = "the maximum fov of the aim assist when the magnet triggerbot is active",
+        tooltip = "FOV for magnet",
         callback = function(val) getgenv().MagnetFOV = val end,
     })
-    
-    section:slider({
-        subsection = "trigger bot",
+
+    section_trigger:slider({
         name = "magnet speed",
         suffix = "%",
         flag = "legit_magnetsmoothing",
         default = 10,
         min = 0,
         max = 100,
-        tooltip = "the smoothness of the aim assist when the magnet triggerbot is active",
+        tooltip = "smoothness for magnet",
         callback = function(val) getgenv().MagnetSpeed = val end,
     })
-    
-    section:dropdown({
-        subsection = "trigger bot",
+
+    section_trigger:dropdown({
         name = "magnet priority",
         flag = "legit_magnetnpriority",
         items = { "closest", "head", "body" },
         multi = false,
-        tooltip = "the hitscan priority of the aim assist when the magnet triggerbot is active",
+        tooltip = "priority for magnet",
         callback = function(val) getgenv().MagnetPriority = val end,
     })
-end
 
--- ========================
--- CHECKS SECTION
--- ========================
-local section = legit:section({ name = "checks", side = "left" })
-    section:toggle({
-        subsection = "checks",
+    -- Checks section
+    local section_checks = legit:section({ name = "checks", side = "left" })
+    section_checks:toggle({
         name = "wall check",
         flag = "wall_check",
         default = false,
         callback = function(val) getgenv().WallCheck = val end,
     })
-    
-    section:toggle({
-        subsection = "checks",
+    section_checks:toggle({
         name = "friend check",
         flag = "friend_check",
         default = false,
         callback = function(val) getgenv().FriendCheck = val end,
     })
-    
-    section:toggle({
-        subsection = "checks",
+    section_checks:toggle({
         name = "knock check",
         flag = "knock_check",
         default = false,
         callback = function(val) getgenv().KnockCheck = val end,
     })
-    
-    section:toggle({
-        subsection = "checks",
+    section_checks:toggle({
         name = "forcefield check",
         flag = "forcefield_check",
         default = false,
         callback = function(val) getgenv().ForcefieldCheck = val end,
     })
-    
-    section:toggle({
-        subsection = "checks",
+    section_checks:toggle({
         name = "melee check",
         flag = "melee_check",
         default = false,
         callback = function(val) getgenv().MeleeCheck = val end,
     })
-
-    section:toggle({
-        subsection = "checks",
+    section_checks:toggle({
         name = "crew check",
         flag = "crew_check",
         default = false,
         callback = function(val) getgenv().CrewCheck = val end,
     })
+end
 
 -- ========================
--- ESP TAB (unchanged)
+-- RAGE TAB
+-- ========================
+do
+    local movement = rage:section({ name = "movement", side = "left" })
+    movement:toggle({
+        name = "modify speed",
+        flag = "rage_movement_speed_toggle",
+        default = false,
+        callback = function(val) getgenv().ModifySpeed = val end,
+    })
+    movement:slider({
+        name = "walk speed",
+        suffix = "%",
+        flag = "rage_movement_speed",
+        default = 16,
+        min = 16,
+        max = 200,
+        callback = function(val) getgenv().WalkSpeed = val end,
+    })
+    movement:slider({
+        name = "jump power",
+        suffix = "%",
+        flag = "rage_movement_jump",
+        default = 50,
+        min = 0,
+        max = 200,
+        callback = function(val) getgenv().JumpPower = val end,
+    })
+    -- NEW: jump power toggle
+    movement:toggle({
+        name = "modify jump",
+        flag = "rage_movement_jump_toggle",
+        default = false,
+        callback = function(val) getgenv().ModifyJumpPower = val end,
+    })
+    movement:toggle({
+        name = "fly",
+        flag = "rage_movement_fly",
+        default = false,
+        callback = function(val) getgenv().Fly = val end,
+    })
+    movement:slider({
+        name = "fly speed",
+        suffix = "%",
+        flag = "rage_movement_flyspeed",
+        default = 50,
+        min = 10,
+        max = 200,
+        callback = function(val) getgenv().FlySpeed = val end,
+    })
+    movement:toggle({
+        name = "noclip",
+        flag = "rage_movement_noclip",
+        default = false,
+        callback = function(val) getgenv().Noclip = val end,
+    })
+    movement:toggle({
+        name = "bunny hop",
+        flag = "rage_movement_bhop",
+        default = false,
+        callback = function(val) getgenv().BunnyHop = val end,
+    })
+    movement:toggle({
+        name = "infinite jump",
+        flag = "rage_movement_infinitejump",
+        default = false,
+        callback = function(val) getgenv().InfiniteJump = val end,
+    })
+    movement:toggle({
+        name = "auto armor",
+        flag = "rage_autoarmor",
+        default = false,
+        callback = function(val) getgenv().AutoArmor = val end,
+    })
+    movement:slider({
+        name = "auto armor cooldown",
+        suffix = "s",
+        flag = "rage_autoarmor_cooldown",
+        default = 5,
+        min = 0,
+        max = 30,
+        interval = 0.5,
+        callback = function(val) getgenv().AutoArmorCooldown = val end,
+    })
+    movement:slider({
+        name = "auto armor proximity",
+        suffix = "studs",
+        flag = "rage_autoarmor_proximity",
+        default = 20,
+        min = 0,
+        max = 100,
+        interval = 1,
+        callback = function(val) getgenv().AutoArmorProximity = val end,
+    })
+
+    local ragemode = rage:section({ name = "rage mode", side = "left" })
+    ragemode:toggle({
+        name = "enabled",
+        flag = "rage_mode_enabled",
+        default = false,
+        callback = function(val) getgenv().RageModeEnabled = val end,
+    })
+    ragemode:slider({
+        name = "lock radius",
+        suffix = "studs",
+        flag = "rage_mode_radius",
+        default = 50,
+        min = 10,
+        max = 300,
+        callback = function(val) getgenv().RageLockRadius = val end,
+    })
+    ragemode:toggle({
+        name = "custom fov",
+        flag = "rage_mode_customfov",
+        default = false,
+        callback = function(val) getgenv().RageCustomFOV = val end,
+    })
+    ragemode:slider({
+        name = "fov",
+        suffix = "°",
+        flag = "rage_mode_fov",
+        default = 30,
+        min = 0,
+        max = 360,
+        callback = function(val) getgenv().RageFOV = val end,
+    })
+    ragemode:toggle({
+        name = "visible only",
+        flag = "rage_mode_visibleonly",
+        default = false,
+        callback = function(val) getgenv().RageVisibleOnly = val end,
+    })
+    ragemode:toggle({
+        name = "auto resolver",
+        flag = "rage_autoresolver",
+        default = false,
+        tooltip = "automatically resolve velocity manipulation",
+        callback = function(val) getgenv().RageAutoResolver = val end,
+    })
+
+    local anti_aim = rage:section({ name = "anti-aim", side = "right" })
+    anti_aim:toggle({
+        name = "enabled",
+        flag = "rage_antiaim_enabled",
+        default = false,
+        callback = function(val) getgenv().AntiAimEnabled = val end,
+    })
+    anti_aim:dropdown({
+        name = "mode",
+        flag = "rage_antiaim_mode",
+        items = { "spinbot", "jitter", "static" },
+        multi = false,
+        default = "spinbot",
+        callback = function(val) getgenv().AntiAimMode = val end,
+    })
+    anti_aim:slider({
+        name = "spin speed",
+        suffix = "%",
+        flag = "rage_antiaim_speed",
+        default = 100,
+        min = 0,
+        max = 200,
+        callback = function(val) getgenv().AntiAimSpinSpeed = val end,
+    })
+    anti_aim:slider({
+        name = "jitter range",
+        suffix = "°",
+        flag = "rage_antiaim_jitter",
+        default = 10,
+        min = 0,
+        max = 90,
+        callback = function(val) getgenv().AntiAimJitterRange = val end,
+    })
+    anti_aim:toggle({
+        name = "fake lag",
+        flag = "rage_antiaim_fakelag",
+        default = false,
+        callback = function(val) getgenv().FakeLagEnabled = val end,
+    })
+    anti_aim:slider({
+        name = "fake lag amount",
+        flag = "rage_antiaim_fakelag_amount",
+        default = 10,
+        min = 0,
+        max = 60,
+        callback = function(val) getgenv().FakeLagAmount = val end,
+    })
+    anti_aim:toggle({
+        name = "desync",
+        flag = "rage_antiaim_desync",
+        default = false,
+        callback = function(val) getgenv().DesyncEnabled = val end,
+    })
+    anti_aim:slider({
+        name = "desync amount",
+        suffix = "°",
+        flag = "rage_antiaim_desync_amount",
+        default = 60,
+        min = 0,
+        max = 180,
+        callback = function(val) getgenv().DesyncAmount = val end,
+    })
+    anti_aim:toggle({
+        name = "fake angle",
+        flag = "rage_antiaim_fakeangle",
+        default = false,
+        callback = function(val) getgenv().FakeAngle = val end,
+    })
+    anti_aim:toggle({
+        name = "anti resolution",
+        flag = "rage_antiaim_antiresolution",
+        default = false,
+        callback = function(val) getgenv().AntiResolution = val end,
+    })
+    anti_aim:toggle({
+        name = "legit anti aim",
+        flag = "rage_antiaim_legit",
+        default = false,
+        callback = function(val) getgenv().LegitAntiAim = val end,
+    })
+    anti_aim:toggle({
+        name = "anti ground shot",
+        flag = "legit_antigroundshot",
+        default = false,
+        tooltip = "prevent shooting at ground",
+        callback = function(val) getgenv().AntiGroundShot = val end,
+    })
+end
+
+-- ========================
+-- ESP TAB
 -- ========================
 do
     local enemy = esp:section({ name = "enemy", fill = 0.5 })
     local team = esp:section({ name = "team", side = "right" })
     local esp_settings = esp:section({ name = "esp settings", fill = 0.1, side = "right" })
 
-    enemy:toggle({ name = "enabled", flag = "enemy_esp", default = false, tooltip = "enables enemy esp",
+    enemy:toggle({ name = "enabled", flag = "enemy_esp", default = false,
         callback = function(val) getgenv().EnemyESPEnabled = val end })
-
-    enemy
-        :toggle({ name = "bounding box", flag = "enemy_box", default = false, tooltip = "shows enemy boxes",
-            callback = function(val) getgenv().EnemyBox = val end })
+    enemy:toggle({ name = "bounding box", flag = "enemy_box", default = false,
+        callback = function(val) getgenv().EnemyBox = val end })
         :colorpicker({ flag = "enemy_boxcolor", color = Color3.new(1, 0, 0),
             callback = function(col) getgenv().EnemyBoxColor = col end })
-    enemy
-        :toggle({
-            name = "filled bounding box",
-            flag = "enemy_filledbox",
-            default = false,
-            tooltip = "filles enemy boxes",
-            callback = function(val) getgenv().EnemyFilledBox = val end,
-        })
-        :colorpicker({
-            object = "filled bounding box",
-            name = "filled box",
-            flag = "enemy_filledboxcolor",
-            color = Color3.new(1, 0, 0),
-            transparency = 0.8,
-            callback = function(col) getgenv().EnemyFilledBoxColor = col end,
-        })
-
-    enemy:toggle({ name = "health bar", flag = "enemy_healthbar", default = false, tooltip = "shows enemy health bars",
+    enemy:toggle({ name = "filled bounding box", flag = "enemy_filledbox", default = false,
+        callback = function(val) getgenv().EnemyFilledBox = val end })
+        :colorpicker({ object = "filled bounding box", name = "filled box", flag = "enemy_filledboxcolor",
+            color = Color3.new(1, 0, 0), transparency = 0.8,
+            callback = function(col) getgenv().EnemyFilledBoxColor = col end })
+    enemy:toggle({ name = "health bar", flag = "enemy_healthbar", default = false,
         callback = function(val) getgenv().EnemyHealthBar = val end })
-    enemy:colorpicker({ object = "health bar", flag = "enemy_lowhealth", color = Color3.fromRGB(255, 100, 100),
-        callback = function(col) getgenv().EnemyLowHealthColor = col end })
-    enemy:colorpicker({ object = "health bar", flag = "enemy_fullhealth", color = Color3.fromRGB(100, 255, 100),
-        callback = function(col) getgenv().EnemyFullHealthColor = col end })
-    enemy:toggle({
-        name = "gradient health bar",
-        flag = "enemy_gradienthealthbar",
-        default = false,
-        tooltip = "health bars will appear as gradients",
-        callback = function(val) getgenv().EnemyGradientHealthBar = val end,
-    })
-    enemy:toggle({
-        name = "health number",
-        flag = "enemy_healthnumber",
-        default = false,
-        tooltip = "shows enemy health values",
-        callback = function(val) getgenv().EnemyHealthNumber = val end,
-    })
-    enemy:colorpicker({ object = "health number", flag = "enemy_healthnumbercolor", color = Color3.new(1, 1, 1),
-        callback = function(col) getgenv().EnemyHealthNumberColor = col end })
-
-    enemy:toggle({ name = "display name", flag = "enemy_name", default = false, tooltip = "shows enemy names",
+        :colorpicker({ object = "health bar", flag = "enemy_lowhealth", color = Color3.fromRGB(255,100,100),
+            callback = function(col) getgenv().EnemyLowHealthColor = col end })
+        :colorpicker({ object = "health bar", flag = "enemy_fullhealth", color = Color3.fromRGB(100,255,100),
+            callback = function(col) getgenv().EnemyFullHealthColor = col end })
+    enemy:toggle({ name = "gradient health bar", flag = "enemy_gradienthealthbar", default = false,
+        callback = function(val) getgenv().EnemyGradientHealthBar = val end })
+    enemy:toggle({ name = "health number", flag = "enemy_healthnumber", default = false,
+        callback = function(val) getgenv().EnemyHealthNumber = val end })
+        :colorpicker({ object = "health number", flag = "enemy_healthnumbercolor", color = Color3.new(1,1,1),
+            callback = function(col) getgenv().EnemyHealthNumberColor = col end })
+    enemy:toggle({ name = "display name", flag = "enemy_name", default = false,
         callback = function(val) getgenv().EnemyDisplayName = val end })
-    enemy:colorpicker({ object = "display name", flag = "enemy_namecolor", color = Color3.new(1, 1, 1),
-        callback = function(col) getgenv().EnemyNameColor = col end })
-
-    enemy:toggle({
-        name = "held weapon",
-        flag = "enemy_heldweapon",
-        default = false,
-        tooltip = "shows the enemies held weapon",
-        callback = function(val) getgenv().EnemyHeldWeapon = val end,
-    })
-
-    enemy:toggle({
-        name = "distance",
-        flag = "enemy_distance",
-        default = false,
-        tooltip = "shows the distance to the enemy",
-        callback = function(val) getgenv().EnemyDistance = val end,
-    })
-
-    enemy:toggle({
-        name = "exploiting",
-        flag = "enemy_exploit",
-        default = false,
-        tooltip = "shows when a enemy is using a time exploit...",
-        callback = function(val) getgenv().EnemyExploiting = val end,
-    })
-    enemy:colorpicker({ object = "exploiting", flag = "enemy_exploitcolor", color = Color3.new(1, 0, 0),
-        callback = function(col) getgenv().EnemyExploitColor = col end })
-
-    enemy:toggle({ name = "chams", flag = "enemy_chams", default = false, tooltip = "shows enemy chams",
+        :colorpicker({ object = "display name", flag = "enemy_namecolor", color = Color3.new(1,1,1),
+            callback = function(col) getgenv().EnemyNameColor = col end })
+    enemy:toggle({ name = "held weapon", flag = "enemy_heldweapon", default = false,
+        callback = function(val) getgenv().EnemyHeldWeapon = val end })
+    enemy:toggle({ name = "distance", flag = "enemy_distance", default = false,
+        callback = function(val) getgenv().EnemyDistance = val end })
+    enemy:toggle({ name = "exploiting", flag = "enemy_exploit", default = false,
+        callback = function(val) getgenv().EnemyExploiting = val end })
+        :colorpicker({ object = "exploiting", flag = "enemy_exploitcolor", color = Color3.new(1,0,0),
+            callback = function(col) getgenv().EnemyExploitColor = col end })
+    enemy:toggle({ name = "chams", flag = "enemy_chams", default = false,
         callback = function(val) getgenv().EnemyChams = val end })
-    enemy:colorpicker({
-        object = "chams",
-        flag = "enemy_innerchamcolor",
-        color = Color3.fromRGB(100, 0, 0),
-        transparency = 155 / 255,
-        callback = function(col) getgenv().EnemyInnerChamColor = col end,
-    })
-    enemy:colorpicker({
-        object = "chams",
-        flag = "enemy_outerchamcolor",
-        color = Color3.fromRGB(255, 0, 0),
-        transparency = 0,
-        callback = function(col) getgenv().EnemyOuterChamColor = col end,
-    })
-
-    enemy:toggle({ name = "skeleton", flag = "enemy_skeleton", default = false, tooltip = "shows enemy skeletons",
+        :colorpicker({ object = "chams", flag = "enemy_innerchamcolor", color = Color3.fromRGB(100,0,0), transparency = 155/255,
+            callback = function(col) getgenv().EnemyInnerChamColor = col end })
+        :colorpicker({ object = "chams", flag = "enemy_outerchamcolor", color = Color3.fromRGB(255,0,0), transparency = 0,
+            callback = function(col) getgenv().EnemyOuterChamColor = col end })
+    enemy:toggle({ name = "skeleton", flag = "enemy_skeleton", default = false,
         callback = function(val) getgenv().EnemySkeleton = val end })
-    enemy:colorpicker({ object = "skeleton", flag = "enemy_skeletoncolor", color = Color3.fromRGB(236, 251, 136),
-        callback = function(col) getgenv().EnemySkeletonColor = col end })
-
-    enemy:toggle({ name = "snap lines", flag = "enemy_snaplines", default = false, tooltip = "shows enemy snap lines",
+        :colorpicker({ object = "skeleton", flag = "enemy_skeletoncolor", color = Color3.fromRGB(236,251,136),
+            callback = function(col) getgenv().EnemySkeletonColor = col end })
+    enemy:toggle({ name = "snap lines", flag = "enemy_snaplines", default = false,
         callback = function(val) getgenv().EnemySnapLines = val end })
-    enemy:colorpicker({
-        object = "snap lines",
-        flag = "enemy_snaplinescolor",
-        color = Color3.new(1, 1, 1),
-        transparency = 0,
-        callback = function(col) getgenv().EnemySnapLinesColor = col end,
-    })
-
-    enemy:toggle({
-        name = "view angle",
-        flag = "enemy_viewangle",
-        default = false,
-        tooltip = "shows a line in the direction the enemy is looking",
-        callback = function(val) getgenv().EnemyViewAngle = val end,
-    })
-    enemy:colorpicker({ object = "view angle", flag = "enemy_viewanglecolor", color = Color3.new(1, 1, 1),
-        callback = function(col) getgenv().EnemyViewAngleColor = col end })
-
-    enemy:toggle({
-        name = "head dot",
-        flag = "enemy_headdot",
-        default = false,
-        tooltip = "shows a circle at which shooting at will result in a headshot",
-        callback = function(val) getgenv().EnemyHeadDot = val end,
-    })
-    enemy:colorpicker({ object = "head dot", flag = "enemy_headdotcolor", color = Color3.new(1, 0, 0),
-        callback = function(col) getgenv().EnemyHeadDotColor = col end })
-
-    enemy:toggle({
-        name = "out of view",
-        flag = "enemy_oov",
-        default = false,
-        tooltip = "shows an arrow pointing towards an enemy if they are not in view",
-        callback = function(val) getgenv().EnemyOutOfView = val end,
-    })
-    enemy:colorpicker({ object = "out of view", flag = "enemy_oovcolor", color = Color3.new(1, 1, 1),
-        callback = function(col) getgenv().EnemyOutOfViewColor = col end })
-
-    enemy:toggle({
-        name = "weapon names",
-        flag = "enemy_weaponnames",
-        default = false,
-        tooltip = "shows weapon names above enemies",
-        callback = function(val) getgenv().EnemyWeaponNames = val end,
-    })
-    enemy:colorpicker({
-        object = "weapon names",
-        flag = "enemy_weaponnamecolor",
-        color = Color3.fromRGB(255, 255, 255),
-        callback = function(col) getgenv().EnemyWeaponNameColor = col end,
-    })
-
-    enemy:slider({
-        name = "arrow distance",
-        suffix = "%",
-        flag = "arrow_distance",
-        value = 30,
-        minimum = 1,
-        maximum = 100,
-        callback = function(val) getgenv().ArrowDistance = val end,
-    })
+        :colorpicker({ object = "snap lines", flag = "enemy_snaplinescolor", color = Color3.new(1,1,1), transparency = 0,
+            callback = function(col) getgenv().EnemySnapLinesColor = col end })
+    enemy:toggle({ name = "view angle", flag = "enemy_viewangle", default = false,
+        callback = function(val) getgenv().EnemyViewAngle = val end })
+        :colorpicker({ object = "view angle", flag = "enemy_viewanglecolor", color = Color3.new(1,1,1),
+            callback = function(col) getgenv().EnemyViewAngleColor = col end })
+    enemy:toggle({ name = "head dot", flag = "enemy_headdot", default = false,
+        callback = function(val) getgenv().EnemyHeadDot = val end })
+        :colorpicker({ object = "head dot", flag = "enemy_headdotcolor", color = Color3.new(1,0,0),
+            callback = function(col) getgenv().EnemyHeadDotColor = col end })
+    enemy:toggle({ name = "out of view", flag = "enemy_oov", default = false,
+        callback = function(val) getgenv().EnemyOutOfView = val end })
+        :colorpicker({ object = "out of view", flag = "enemy_oovcolor", color = Color3.new(1,1,1),
+            callback = function(col) getgenv().EnemyOutOfViewColor = col end })
+    enemy:toggle({ name = "weapon names", flag = "enemy_weaponnames", default = false,
+        callback = function(val) getgenv().EnemyWeaponNames = val end })
+        :colorpicker({ object = "weapon names", flag = "enemy_weaponnamecolor", color = Color3.fromRGB(255,255,255),
+            callback = function(col) getgenv().EnemyWeaponNameColor = col end })
+    enemy:slider({ name = "arrow distance", suffix = "%", flag = "arrow_distance", value = 30, minimum = 1, maximum = 100,
+        callback = function(val) getgenv().ArrowDistance = val end })
     enemy:slider({ name = "arrow size", suffix = "%", flag = "arrow_size", value = 30, minimum = 1, maximum = 100,
         callback = function(val) getgenv().ArrowSize = val end })
-    enemy:toggle({
-        name = "dynamic arrow size",
-        flag = "enemy_dynamicarrowsize",
-        default = false,
-        tooltip = "sizes the arrows based on distance",
-        callback = function(val) getgenv().DynamicArrowSize = val end,
-    })
+    enemy:toggle({ name = "dynamic arrow size", flag = "enemy_dynamicarrowsize", default = false,
+        callback = function(val) getgenv().DynamicArrowSize = val end })
 
-    -- Team ESP (same pattern)
-    team:toggle({ name = "enabled", flag = "team_esp", default = false, tooltip = "enables team esp",
+    -- Team ESP
+    team:toggle({ name = "enabled", flag = "team_esp", default = false,
         callback = function(val) getgenv().TeamESPEnabled = val end })
-    team:toggle({ name = "bounding box", flag = "team_box", default = false, tooltip = "shows team boxes",
+    team:toggle({ name = "bounding box", flag = "team_box", default = false,
         callback = function(val) getgenv().TeamBox = val end })
-        :colorpicker({ object = "bounding box", name = "box", flag = "team_boxcolor", color = Color3.new(0, 1, 0),
+        :colorpicker({ object = "bounding box", name = "box", flag = "team_boxcolor", color = Color3.new(0,1,0),
             callback = function(col) getgenv().TeamBoxColor = col end })
-    team
-        :toggle({ name = "filled bounding box", flag = "team_filledbox", default = false, tooltip = "fills team boxes",
-            callback = function(val) getgenv().TeamFilledBox = val end })
-        :colorpicker({
-            object = "filled bounding box",
-            name = "filled box",
-            flag = "team_filledboxcolor",
-            color = Color3.new(0, 1, 0),
-            transparency = 0.8,
-            callback = function(col) getgenv().TeamFilledBoxColor = col end,
-        })
-    team:toggle({ name = "health bar", flag = "team_healthbar", default = false, tooltip = "shows team health bars",
+    team:toggle({ name = "filled bounding box", flag = "team_filledbox", default = false,
+        callback = function(val) getgenv().TeamFilledBox = val end })
+        :colorpicker({ object = "filled bounding box", name = "filled box", flag = "team_filledboxcolor", color = Color3.new(0,1,0), transparency = 0.8,
+            callback = function(col) getgenv().TeamFilledBoxColor = col end })
+    team:toggle({ name = "health bar", flag = "team_healthbar", default = false,
         callback = function(val) getgenv().TeamHealthBar = val end })
-        :colorpicker({ object = "health bar", name = "low health", flag = "team_lowhealth", color = Color3.fromRGB(255, 100, 100),
+        :colorpicker({ object = "health bar", name = "low health", flag = "team_lowhealth", color = Color3.fromRGB(255,100,100),
             callback = function(col) getgenv().TeamLowHealthColor = col end })
-        :colorpicker({ object = "health bar", name = "full health", flag = "team_fullhealth", color = Color3.fromRGB(100, 255, 100),
+        :colorpicker({ object = "health bar", name = "full health", flag = "team_fullhealth", color = Color3.fromRGB(100,255,100),
             callback = function(col) getgenv().TeamFullHealthColor = col end })
     team:toggle({ name = "gradient health bar", flag = "team_gradienthealthbar", default = false,
         callback = function(val) getgenv().TeamGradientHealthBar = val end })
     team:toggle({ name = "health number", flag = "team_healthnumber", default = false,
         callback = function(val) getgenv().TeamHealthNumber = val end })
-        :colorpicker({ object = "health number", name = "health number", flag = "team_healthnumbercolor", color = Color3.new(1, 1, 1),
+        :colorpicker({ object = "health number", name = "health number", flag = "team_healthnumbercolor", color = Color3.new(1,1,1),
             callback = function(col) getgenv().TeamHealthNumberColor = col end })
     team:toggle({ name = "display name", flag = "team_name", default = false,
         callback = function(val) getgenv().TeamDisplayName = val end })
-        :colorpicker({ object = "display name", name = "name", flag = "team_namecolor", color = Color3.new(1, 1, 1),
+        :colorpicker({ object = "display name", name = "name", flag = "team_namecolor", color = Color3.new(1,1,1),
             callback = function(col) getgenv().TeamNameColor = col end })
     team:toggle({ name = "held weapon", flag = "team_heldweapon", default = false,
         callback = function(val) getgenv().TeamHeldWeapon = val end })
-        :colorpicker({ object = "held weapon", name = "held weapon", flag = "team_heldweaponcolor", color = Color3.new(1, 1, 1),
+        :colorpicker({ object = "held weapon", name = "held weapon", flag = "team_heldweaponcolor", color = Color3.new(1,1,1),
             callback = function(col) getgenv().TeamHeldWeaponColor = col end })
     team:toggle({ name = "distance", flag = "team_distance", default = false,
         callback = function(val) getgenv().TeamDistance = val end })
-        :colorpicker({ object = "distance", name = "distance", flag = "team_distancecolor", color = Color3.new(1, 1, 1),
+        :colorpicker({ object = "distance", name = "distance", flag = "team_distancecolor", color = Color3.new(1,1,1),
             callback = function(col) getgenv().TeamDistanceColor = col end })
     team:toggle({ name = "exploiting", flag = "team_exploit", default = false,
         callback = function(val) getgenv().TeamExploiting = val end })
-        :colorpicker({ object = "exploiting", name = "exploit flag", flag = "team_exploitcolor", color = Color3.new(1, 0, 0),
+        :colorpicker({ object = "exploiting", name = "exploit flag", flag = "team_exploitcolor", color = Color3.new(1,0,0),
             callback = function(col) getgenv().TeamExploitColor = col end })
     team:toggle({ name = "chams", flag = "team_chams", default = false,
         callback = function(val) getgenv().TeamChams = val end })
-        :colorpicker({ object = "chams", name = "inner cham", flag = "team_innerchamcolor", color = Color3.fromRGB(0, 100, 0), transparency = 155/255,
+        :colorpicker({ object = "chams", name = "inner cham", flag = "team_innerchamcolor", color = Color3.fromRGB(0,100,0), transparency = 155/255,
             callback = function(col) getgenv().TeamInnerChamColor = col end })
-        :colorpicker({ object = "chams", name = "outer cham", flag = "team_outerchamcolor", color = Color3.fromRGB(0, 255, 0), transparency = 0,
+        :colorpicker({ object = "chams", name = "outer cham", flag = "team_outerchamcolor", color = Color3.fromRGB(0,255,0), transparency = 0,
             callback = function(col) getgenv().TeamOuterChamColor = col end })
     team:toggle({ name = "skeleton", flag = "team_skeleton", default = false,
         callback = function(val) getgenv().TeamSkeleton = val end })
-        :colorpicker({ object = "skeleton", name = "skeleton", flag = "team_skeletoncolor", color = Color3.fromRGB(236, 251, 136),
+        :colorpicker({ object = "skeleton", name = "skeleton", flag = "team_skeletoncolor", color = Color3.fromRGB(236,251,136),
             callback = function(col) getgenv().TeamSkeletonColor = col end })
     team:toggle({ name = "view angle", flag = "team_viewangle", default = false,
         callback = function(val) getgenv().TeamViewAngle = val end })
-        :colorpicker({ object = "view angle", name = "view angle", flag = "team_viewanglecolor", color = Color3.new(1, 1, 1),
+        :colorpicker({ object = "view angle", name = "view angle", flag = "team_viewanglecolor", color = Color3.new(1,1,1),
             callback = function(col) getgenv().TeamViewAngleColor = col end })
     team:toggle({ name = "head dot", flag = "team_headdot", default = false,
         callback = function(val) getgenv().TeamHeadDot = val end })
-        :colorpicker({ object = "head dot", name = "head dot", flag = "team_headdotcolor", color = Color3.new(0, 1, 0),
+        :colorpicker({ object = "head dot", name = "head dot", flag = "team_headdotcolor", color = Color3.new(0,1,0),
             callback = function(col) getgenv().TeamHeadDotColor = col end })
 
-    -- ESP Settings (callbacks)
+    -- ESP settings
     esp_settings:slider({ name = "max hp visiblity cap", suffix = "hp", flag = "espsettings_maxhp", value = 98, minimum = 0, maximum = 100,
         callback = function(val) getgenv().ESPMaxHPVisibilityCap = val end })
     esp_settings:dropdown({ name = "text font", flag = "espsettings_font", items = { "Plex", "Monospace", "System", "UI" }, multi = false,
@@ -702,20 +818,20 @@ do
         callback = function(val) getgenv().ESPFlagTextSize = val end })
     esp_settings:toggle({ name = "highlight aimbot target", flag = "espsettings_showaimbottarget", default = false,
         callback = function(val) getgenv().HighlightAimbotTarget = val end })
-        :colorpicker({ object = "highlight aimbot target", name = "aimbot target", flag = "espsettings_showaimbottargetcolor", color = Color3.new(1, 0, 0),
+        :colorpicker({ object = "highlight aimbot target", name = "aimbot target", flag = "espsettings_showaimbottargetcolor", color = Color3.new(1,0,0),
             callback = function(col) getgenv().HighlightAimbotTargetColor = col end })
     esp_settings:toggle({ name = "highlight friendlies", flag = "espsettings_showfriendlies", default = false,
         callback = function(val) getgenv().HighlightFriendlies = val end })
-        :colorpicker({ object = "highlight friendlies", name = "friendlies", flag = "espsettings_showfriendliescolor", color = Color3.fromRGB(120, 189, 245),
+        :colorpicker({ object = "highlight friendlies", name = "friendlies", flag = "espsettings_showfriendliescolor", color = Color3.fromRGB(120,189,245),
             callback = function(col) getgenv().HighlightFriendliesColor = col end })
     esp_settings:toggle({ name = "highlight priorities", flag = "espsettings_showpriorities", default = false,
         callback = function(val) getgenv().HighlightPriorities = val end })
-        :colorpicker({ object = "highlight priorities", name = "priorities", flag = "espsettings_showprioritiescolor", color = Color3.fromRGB(245, 239, 120),
+        :colorpicker({ object = "highlight priorities", name = "priorities", flag = "espsettings_showprioritiescolor", color = Color3.fromRGB(245,239,120),
             callback = function(col) getgenv().HighlightPrioritiesColor = col end })
 end
 
 -- ========================
--- VISUALS TAB (unchanged)
+-- VISUALS TAB
 -- ========================
 do
     local camera = visuals:section({ name = "camera", side = "left" })
@@ -736,9 +852,9 @@ do
 
     local world = visuals:section({ name = "world", side = "right", fill = 0.2 })
     world:toggle({ name = "ambient", callback = function(val) getgenv().Ambient = val end })
-    world:colorpicker({ color = Color3.fromRGB(128, 128, 255), alpha = 1,
+    world:colorpicker({ color = Color3.fromRGB(128,128,255), alpha = 1,
         callback = function(col) getgenv().AmbientColor1 = col end })
-    world:colorpicker({ color = Color3.fromRGB(128, 128, 255), alpha = 1,
+    world:colorpicker({ color = Color3.fromRGB(128,128,255), alpha = 1,
         callback = function(col) getgenv().AmbientColor2 = col end })
     world:slider({ name = "time of day", min = 0, max = 24, default = 6, interval = 1,
         callback = function(val) getgenv().TimeOfDay = val end })
@@ -755,7 +871,7 @@ do
     world:dropdown({ name = "brightness mode", items = { "dimmed", "bright", "default" }, default = "dimmed",
         callback = function(val) getgenv().BrightnessMode = val end })
     world:toggle({ name = "teleporting lines", callback = function(val) getgenv().TeleportingLines = val end })
-        :colorpicker({ color = Color3.fromRGB(168, 232, 65), alpha = 1,
+        :colorpicker({ color = Color3.fromRGB(168,232,65), alpha = 1,
             callback = function(col) getgenv().TeleportingLinesColor = col end })
     world:toggle({ name = "show fake position", callback = function(val) getgenv().ShowFakePosition = val end })
     world:toggle({ name = "show fov", callback = function(val) getgenv().ShowFOV = val end })
@@ -771,106 +887,7 @@ do
 end
 
 -- ========================
--- RAGE TAB (with auto-armor sliders + auto resolver + anti ground shot)
--- ========================
-do
-    local movement = rage:section({ name = "movement", side = "left" })
-    movement:toggle({ name = "modify speed", flag = "rage_movement_speed_toggle", default = false,
-        callback = function(val) getgenv().ModifySpeed = val end })
-    movement:slider({ name = "walk speed", suffix = "%", flag = "rage_movement_speed", default = 16, min = 16, max = 200,
-        callback = function(val) getgenv().WalkSpeed = val end })
-    movement:slider({ name = "jump power", suffix = "%", flag = "rage_movement_jump", default = 50, min = 0, max = 200,
-        callback = function(val) getgenv().JumpPower = val end })
-    movement:toggle({ name = "fly", flag = "rage_movement_fly", default = false,
-        callback = function(val) getgenv().Fly = val end })
-    movement:slider({ name = "fly speed", suffix = "%", flag = "rage_movement_flyspeed", default = 50, min = 10, max = 200,
-        callback = function(val) getgenv().FlySpeed = val end })
-    movement:toggle({ name = "noclip", flag = "rage_movement_noclip", default = false,
-        callback = function(val) getgenv().Noclip = val end })
-    movement:toggle({ name = "bunny hop", flag = "rage_movement_bhop", default = false,
-        callback = function(val) getgenv().BunnyHop = val end })
-    movement:toggle({ name = "infinite jump", flag = "rage_movement_infinitejump", default = false,
-        callback = function(val) getgenv().InfiniteJump = val end })
-    movement:toggle({ name = "auto armor", flag = "rage_autoarmor", default = false,
-        callback = function(val) getgenv().AutoArmor = val end })
-
-    -- === AUTO-ARMOR SLIDERS (added) ===
-    movement:slider({
-        name = "auto armor cooldown",
-        suffix = "s",
-        flag = "rage_autoarmor_cooldown",
-        default = 5,
-        min = 0,
-        max = 30,
-        interval = 0.5,
-        callback = function(val) getgenv().AutoArmorCooldown = val end
-    })
-    movement:slider({
-        name = "auto armor proximity",
-        suffix = "studs",
-        flag = "rage_autoarmor_proximity",
-        default = 20,
-        min = 0,
-        max = 100,
-        interval = 1,
-        callback = function(val) getgenv().AutoArmorProximity = val end
-    })
-
-    local ragemode = rage:section({ name = "rage mode", side = "left" })
-    ragemode:toggle({ name = "enabled", flag = "rage_mode_enabled", default = false,
-        callback = function(val) getgenv().RageModeEnabled = val end })
-    ragemode:slider({ name = "lock radius", suffix = "studs", flag = "rage_mode_radius", default = 50, min = 10, max = 300,
-        callback = function(val) getgenv().RageLockRadius = val end })
-    ragemode:toggle({ name = "custom fov", flag = "rage_mode_customfov", default = false,
-        callback = function(val) getgenv().RageCustomFOV = val end })
-    ragemode:slider({ name = "fov", suffix = "°", flag = "rage_mode_fov", default = 30, min = 0, max = 360,
-        callback = function(val) getgenv().RageFOV = val end })
-    ragemode:toggle({ name = "visible only", flag = "rage_mode_visibleonly", default = false,
-        callback = function(val) getgenv().RageVisibleOnly = val end })
-    -- === AUTO RESOLVER TOGGLE (added) ===
-    ragemode:toggle({
-        name = "auto resolver",
-        flag = "rage_autoresolver",
-        default = false,
-        tooltip = "automatically resolves velocity manipulation on targets",
-        callback = function(val) getgenv().RageAutoResolver = val end,
-    })
-
-    local anti_aim = rage:section({ name = "anti-aim", side = "right" })
-    anti_aim:toggle({ name = "enabled", flag = "rage_antiaim_enabled", default = false,
-        callback = function(val) getgenv().AntiAimEnabled = val end })
-    anti_aim:dropdown({ name = "mode", flag = "rage_antiaim_mode", items = { "spinbot", "jitter", "static" }, multi = false, default = "spinbot",
-        callback = function(val) getgenv().AntiAimMode = val end })
-    anti_aim:slider({ name = "spin speed", suffix = "%", flag = "rage_antiaim_speed", default = 100, min = 0, max = 200,
-        callback = function(val) getgenv().AntiAimSpinSpeed = val end })
-    anti_aim:slider({ name = "jitter range", suffix = "°", flag = "rage_antiaim_jitter", default = 10, min = 0, max = 90,
-        callback = function(val) getgenv().AntiAimJitterRange = val end })
-    anti_aim:toggle({ name = "fake lag", flag = "rage_antiaim_fakelag", default = false,
-        callback = function(val) getgenv().FakeLagEnabled = val end })
-    anti_aim:slider({ name = "fake lag amount", flag = "rage_antiaim_fakelag_amount", default = 10, min = 0, max = 60,
-        callback = function(val) getgenv().FakeLagAmount = val end })
-    anti_aim:toggle({ name = "desync", flag = "rage_antiaim_desync", default = false,
-        callback = function(val) getgenv().DesyncEnabled = val end })
-    anti_aim:slider({ name = "desync amount", suffix = "°", flag = "rage_antiaim_desync_amount", default = 60, min = 0, max = 180,
-        callback = function(val) getgenv().DesyncAmount = val end })
-    anti_aim:toggle({ name = "fake angle", flag = "rage_antiaim_fakeangle", default = false,
-        callback = function(val) getgenv().FakeAngle = val end })
-    anti_aim:toggle({ name = "anti resolution", flag = "rage_antiaim_antiresolution", default = false,
-        callback = function(val) getgenv().AntiResolution = val end })
-    anti_aim:toggle({ name = "legit anti aim", flag = "rage_antiaim_legit", default = false,
-        callback = function(val) getgenv().LegitAntiAim = val end })
-    -- === ANTI GROUND SHOT TOGGLE (placed here) ===
-    anti_aim:toggle({
-        name = "anti ground shot",
-        flag = "legit_antigroundshot",
-        default = false,
-        tooltip = "prevents silent aim from shooting at the ground when target is behind terrain",
-        callback = function(val) getgenv().AntiGroundShot = val end,
-    })
-end
-
--- ========================
--- MISC TAB (group check placed directly under "check mods on load")
+-- MISC TAB
 -- ========================
 do
     local panic = misc:section({ name = "panic", side = "left" })
@@ -886,7 +903,6 @@ do
         callback = function(val) getgenv().AntiModEnabled = val end })
     antimod:toggle({ name = "check mods on load", flag = "misc_antimod_checkonload", default = true,
         callback = function(val) getgenv().CheckModsOnLoad = val end })
-    -- === GROUP CHECK TOGGLE (placed directly under "check mods on load") ===
     antimod:toggle({ name = "group check", flag = "misc_antimod_groupcheck", default = false,
         callback = function(val) getgenv().GroupCheck = val end })
     antimod:dropdown({ name = "mod action", flag = "misc_antimod_action", items = { "notify", "crash", "server hop", "kick" }, multi = false, default = "notify",
@@ -894,7 +910,7 @@ do
 end
 
 -- ========================
--- CONFIGS TAB (unchanged)
+-- CONFIGS TAB
 -- ========================
 do
     local configs = window:tab({ name = "configs" })
@@ -957,10 +973,10 @@ do
     library:config_list_update()
 end
 
+-- Notifications
 for i = 1, 1 do
     library:notification({ text = "Astra loaded..." })
 end
 
 legit.open_tab()
-
 return library
