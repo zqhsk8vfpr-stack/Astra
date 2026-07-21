@@ -638,47 +638,9 @@ do
     camera:slider({ name = "camera recoil reduction", min = 0, max = 100, default = 0, interval = 1,
         callback = function(val) getgenv().CameraRecoilReduction = val end })
 
-    local world = visuals:section({ name = "world", side = "right", fill = 0.2 })
-    world:toggle({ name = "ambient", callback = function(val) getgenv().Ambient = val end })
-    world:colorpicker({ color = Color3.fromRGB(128,128,255), alpha = 1,
-        callback = function(col) getgenv().AmbientColor1 = col end })
-    world:colorpicker({ color = Color3.fromRGB(128,128,255), alpha = 1,
-        callback = function(col) getgenv().AmbientColor2 = col end })
-    world:slider({ name = "time of day", min = 0, max = 24, default = 6, interval = 1,
-        callback = function(val) getgenv().TimeOfDay = val end })
+    -- WORLD SECTION REMOVED
 
-    -- FIXED: Chained colorpicker after world:toggle (no stray :colorpicker)
-    world:toggle({ name = "local bullet tracers", callback = function(val) getgenv().LocalBulletTracers = val end })
-        :colorpicker({ color = Color3.fromHex("#C94536"), alpha = 1,
-            callback = function(col) getgenv().LocalBulletTracersColor = col end })
-
-    world:slider({ name = "bullet tracer time", min = 0, max = 10, default = 4, interval = 1,
-        callback = function(val) getgenv().BulletTracerTime = val end })
-    world:toggle({ name = "hit chams", callback = function(val) getgenv().HitChams = val end })
-    world:slider({ name = "hit cham time", min = 0, max = 10, default = 2, interval = 1,
-        callback = function(val) getgenv().HitChamTime = val end })
-    world:dropdown({ name = "hit chams material", items = { "ghost", "solid", "wireframe" }, default = "ghost",
-        callback = function(val) getgenv().HitChamsMaterial = val end })
-    world:dropdown({ name = "brightness mode", items = { "dimmed", "bright", "default" }, default = "dimmed",
-        callback = function(val) getgenv().BrightnessMode = val end })
-
-    -- FIXED: Chained colorpicker after world:toggle (no stray :colorpicker)
-    world:toggle({ name = "teleporting lines", callback = function(val) getgenv().TeleportingLines = val end })
-        :colorpicker({ color = Color3.fromRGB(168,232,65), alpha = 1,
-            callback = function(col) getgenv().TeleportingLinesColor = col end })
-
-    world:toggle({ name = "show fake position", callback = function(val) getgenv().ShowFakePosition = val end })
-    world:toggle({ name = "show fov", callback = function(val) getgenv().ShowFOV = val end })
-    world:colorpicker({ color = Color3.fromHex("#7F48A3"), alpha = 1,
-        callback = function(col) getgenv().FOVColor1 = col end })
-    world:colorpicker({ color = Color3.fromHex("#646464"), alpha = 1,
-        callback = function(col) getgenv().FOVColor2 = col end })
-    world:colorpicker({ color = Color3.fromHex("#A3487F"), alpha = 1,
-        callback = function(col) getgenv().FOVColor3 = col end })
-    world:colorpicker({ color = Color3.fromHex("#FF3C00"), alpha = 1,
-        callback = function(col) getgenv().FOVColor4 = col end })
-    world:toggle({ name = "custom skybox", callback = function(val) getgenv().CustomSkybox = val end })
-end
+end -- end of VISUALS TAB
 
 -- MISC TAB
 do
