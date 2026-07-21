@@ -634,7 +634,6 @@ do
     camera:slider({ name = "vertical aspect ratio", min = 0, max = 200, default = 100, interval = 1,
         callback = function(val) getgenv().VerticalAspectRatio = val end })
     camera:toggle({ name = "remove camera bob", callback = function(val) getgenv().RemoveCameraBob = val end })
-    -- REMOVED the stray "toggle" line
     camera:toggle({ name = "reduce camera recoil", callback = function(val) getgenv().ReduceCameraRecoil = val end })
     camera:slider({ name = "camera recoil reduction", min = 0, max = 100, default = 0, interval = 1,
         callback = function(val) getgenv().CameraRecoilReduction = val end })
