@@ -11,9 +11,7 @@ local rage = window:tab({ name = "rage" })
 local visuals = window:tab({ name = "visuals" })
 local misc = window:tab({ name = "misc" })
 
--- LEGIT TAB
 do
-    -- Camlock section
     local section = legit:section({ name = "camlock" })
     section:toggle({
         name = "enabled",
@@ -29,11 +27,9 @@ do
         default = Enum.KeyCode.E,
         tooltip = "key to lock on",
         callback = function(newKey)
-            -- FIX: check if it's actually an EnumItem
             if newKey and type(newKey) == "userdata" and typeof(newKey) == "EnumItem" then
                 getgenv().AimbotKey = newKey.Name
             else
-                -- fallback: keep default or do nothing
                 getgenv().AimbotKey = "E"
             end
         end,
@@ -184,7 +180,6 @@ do
         callback = function(val) getgenv().MobileNearingEnemy = val end,
     })
 
-    -- Silent aim section
     local section_silent = legit:section({ name = "silent aim", side = "right" })
     section_silent:toggle({
         name = "silent aim",
@@ -255,6 +250,20 @@ do
     })
 
     section_silent:dropdown({
+        name = "aim method",
+        flag = "legit_silentaim_aimmethod",
+        items = {
+            "Aim Bone",
+            "closest part",
+            "nearest point"
+        },
+        multi = false,
+        default = "closest part",
+        tooltip = "pick the aim point on the enemy",
+        callback = function(val) getgenv().SilentAimAimMethod = val end,
+    })
+
+    section_silent:dropdown({
         name = "air aim part",
         flag = "legit_silent_airaimpart",
         items = { "Head", "HumanoidRootPart", "UpperTorso", "LowerTorso", "RightFoot", "LeftFoot", "RightUpperLeg", "LeftUpperLeg" },
@@ -291,7 +300,6 @@ do
         callback = function(val) getgenv().SilentAimInstantHit = val end,
     })
 
-    -- Triggerbot section
     local section_trigger = legit:section({ name = "triggerbot", side = "right" })
     section_trigger:toggle({
         name = "enabled",
@@ -361,7 +369,6 @@ do
         callback = function(val) getgenv().MagnetPriority = val end,
     })
 
-    -- Checks section
     local section_checks = legit:section({ name = "checks", side = "left" })
     section_checks:toggle({
         name = "wall check",
@@ -401,7 +408,6 @@ do
     })
 end
 
--- RAGE TAB
 do
     local movement = rage:section({ name = "movement", side = "left" })
     movement:toggle({
@@ -628,7 +634,6 @@ do
     })
 end
 
--- VISUALS TAB
 do
     local camera = visuals:section({ name = "camera", side = "left" })
     camera:toggle({ name = "toggle fov", flag = "toggle_fov", default = false,
@@ -643,11 +648,8 @@ do
     camera:toggle({ name = "reduce camera recoil", callback = function(val) getgenv().ReduceCameraRecoil = val end })
     camera:slider({ name = "camera recoil reduction", min = 0, max = 100, default = 0, interval = 1,
         callback = function(val) getgenv().CameraRecoilReduction = val end })
-
-    -- World section removed (as requested earlier)
 end
 
--- MISC TAB
 do
     local panic = misc:section({ name = "panic", side = "left" })
     panic:toggle({ name = "panic mode", flag = "misc_panic", default = false,
@@ -674,7 +676,6 @@ do
         callback = function(val) getgenv().ModAction = val end })
 end
 
--- CONFIGS TAB
 do
     local configs = window:tab({ name = "configs" })
     local config = configs:section({ name = "Theming System", side = "right" })
@@ -736,7 +737,6 @@ do
     library:config_list_update()
 end
 
--- Notifications
 for i = 1, 1 do
     library:notification({ text = "Astra loaded..." })
 end
