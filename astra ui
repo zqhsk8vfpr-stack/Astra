@@ -1,142 +1,6 @@
 local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/i77lhm/vaderpaste/refs/heads/main/library.lua"))()
 local flags = library.flags
 
--- ========================================================
--- MOBILE AIM BUTTON HELPER FUNCTIONS
--- ========================================================
-getgenv().MobileAimSize = getgenv().MobileAimSize or 90
-
-function createMobileAimButton()
-    if getgenv()._mobileAimGui then return end
-
-    local screenGui = Instance.new("ScreenGui")
-    screenGui.Name = "MobileAimButton"
-    screenGui.ResetOnSpawn = false
-    screenGui.Parent = game:GetService("CoreGui")
-
-    local btn = Instance.new("TextButton")
-    local size = getgenv().MobileAimSize or 90
-    -- Fixed position at 85% horizontal, 75% vertical (draggable)
-    local xScale = 0.85
-    local yScale = 0.75
-    local half = size / 2
-
-    btn.Size = UDim2.new(0, size, 0, size)
-    btn.Position = UDim2.new(xScale, -half, yScale, -half)
-    btn.BackgroundColor3 = Color3.fromRGB(42, 42, 46)
-    btn.Text = "LOCK"
-    btn.TextColor3 = Color3.fromRGB(108, 92, 231)
-    btn.Font = Enum.Font.GothamBold
-    btn.TextSize = math.max(14, size * 0.3)
-    btn.AutoButtonColor = false
-    btn.Parent = screenGui
-
-    -- Soft shadow
-    local shadow = Instance.new("ImageLabel", btn)
-    shadow.Size = UDim2.new(1, 0, 1, 0)
-    shadow.Position = UDim2.new(0, 0, 0, 0)
-    shadow.BackgroundTransparency = 1
-    shadow.Image = "rbxassetid://5554236805"
-    shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
-    shadow.ImageTransparency = 0.7
-    shadow.ScaleType = Enum.ScaleType.Slice
-    shadow.SliceCenter = Rect.new(23, 23, 277, 277)
-    shadow.ZIndex = -1
-
-    local corner = Instance.new("UICorner", btn)
-    corner.CornerRadius = UDim.new(0, size / 2)
-
-    local stroke = Instance.new("UIStroke", btn)
-    stroke.Color = Color3.fromRGB(255, 255, 255)
-    stroke.Thickness = 1
-    stroke.Transparency = 0.3
-    stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-
-    -- Draggable logic
-    local function makeDraggable(frame)
-        local dragging = false
-        local dragInput = nil
-        local dragStart = nil
-        local startPos = nil
-
-        frame.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
-                dragging = true
-                dragStart = input.Position
-                startPos = frame.Position
-            end
-        end)
-
-        frame.InputChanged:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseMovement then
-                dragInput = input
-            end
-        end)
-
-        game:GetService("UserInputService").InputChanged:Connect(function(input)
-            if dragging and input == dragInput then
-                local delta = input.Position - dragStart
-                frame.Position = UDim2.new(
-                    startPos.X.Scale,
-                    startPos.X.Offset + delta.X,
-                    startPos.Y.Scale,
-                    startPos.Y.Offset + delta.Y
-                )
-            end
-        end)
-
-        game:GetService("UserInputService").InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
-                dragging = false
-            end
-        end)
-    end
-    makeDraggable(btn)
-
-    btn.MouseButton1Click:Connect(function()
-        getgenv().MobileAimLock = not getgenv().MobileAimLock
-        if getgenv().MobileAimLock then
-            btn.Text = "UNLOCK"
-            btn.TextColor3 = Color3.fromRGB(255, 120, 120)
-            btn.BackgroundColor3 = Color3.fromRGB(60, 30, 30)
-        else
-            btn.Text = "LOCK"
-            btn.TextColor3 = Color3.fromRGB(108, 92, 231)
-            btn.BackgroundColor3 = Color3.fromRGB(42, 42, 46)
-        end
-    end)
-
-    getgenv()._mobileAimGui = screenGui
-    getgenv()._mobileAimBtn = btn
-end
-
-function destroyMobileAimButton()
-    if getgenv()._mobileAimGui then
-        getgenv()._mobileAimGui:Destroy()
-        getgenv()._mobileAimGui = nil
-        getgenv()._mobileAimBtn = nil
-    end
-    getgenv().MobileAimLock = false
-end
-
-function updateMobileAimButton()
-    local btn = getgenv()._mobileAimBtn
-    if not btn then return end
-    local size = getgenv().MobileAimSize or 90
-    local half = size / 2
-
-    btn.Size = UDim2.new(0, size, 0, size)
-    btn.TextSize = math.max(14, size * 0.3)
-
-    local corner = btn:FindFirstChild("UICorner")
-    if corner then
-        corner.CornerRadius = UDim.new(0, size / 2)
-    end
-end
-
--- ========================================================
--- UI CREATION
--- ========================================================
 local window = library:window({
     name = "Astra",
     size = UDim2.fromOffset(500, 350),
@@ -147,9 +11,6 @@ local rage = window:tab({ name = "rage" })
 local visuals = window:tab({ name = "visuals" })
 local misc = window:tab({ name = "misc" })
 
--- ========================================================
--- LEGIT TAB
--- ========================================================
 do
     local section = legit:section({ name = "camlock" })
     section:toggle({
@@ -402,6 +263,15 @@ do
         callback = function(val) getgenv().SilentAimAimMethod = val end,
     })
 
+    
+    section_silent:toggle({
+        name = "auto Air",
+        flag = "legit_auto_air",
+        default = false,
+        tooltip = "Automatically adjust aim for airborne targets (mobile friendly)",
+        callback = function(val) getgenv().AutoAir = val end,
+    })
+
     section_silent:dropdown({
         name = "air aim part",
         flag = "legit_silent_airaimpart",
@@ -547,9 +417,6 @@ do
     })
 end
 
--- ========================================================
--- RAGE TAB
--- ========================================================
 do
     local movement = rage:section({ name = "movement", side = "left" })
     movement:toggle({
@@ -641,6 +508,9 @@ do
         interval = 1,
         callback = function(val) getgenv().AutoArmorProximity = val end,
     })
+
+    -- Added "Auto Air" toggle in Rage > Movement (optional, but we already added it in Silent Aim, so keep as is)
+    -- If you want it in both places, we can add here too, but we already placed it in Silent Aim.
 
     local ragemode = rage:section({ name = "rage mode", side = "left" })
     ragemode:toggle({
@@ -774,45 +644,8 @@ do
         tooltip = "prevent shooting at ground",
         callback = function(val) getgenv().AntiGroundShot = val end,
     })
-
-    -- ========================================================
-    -- MOBILE AIM BUTTON (simplified: size only)
-    -- ========================================================
-    local mobile_aim = rage:section({ name = "Mobile Aim", side = "right" })
-
-    mobile_aim:toggle({
-        name = "Show Mobile Aim Button",
-        flag = "rage_mobile_aim_button",
-        default = false,
-        tooltip = "Show a draggable button on screen to toggle aimbot lock (mobile friendly)",
-        callback = function(val)
-            getgenv().MobileAimButton = val
-            if val then
-                createMobileAimButton()
-            else
-                destroyMobileAimButton()
-            end
-        end,
-    })
-
-    mobile_aim:slider({
-        name = "Button Size",
-        flag = "rage_mobile_aim_size",
-        default = 90,
-        min = 50,
-        max = 150,
-        interval = 1,
-        suffix = "px",
-        callback = function(val)
-            getgenv().MobileAimSize = val
-            updateMobileAimButton()
-        end,
-    })
 end
 
--- ========================================================
--- VISUALS TAB
--- ========================================================
 do
     local camera = visuals:section({ name = "camera", side = "left" })
     camera:toggle({ name = "toggle fov", flag = "toggle_fov", default = false,
@@ -828,50 +661,43 @@ do
     camera:slider({ name = "camera recoil reduction", min = 0, max = 100, default = 0, interval = 1,
         callback = function(val) getgenv().CameraRecoilReduction = val end })
 
-    -- ESP Section
-    local esp = visuals:section({ name = "ESP", side = "right" })
-
-    esp:toggle({
+    local esp_section = visuals:section({ name = "ESP", side = "right" })
+    esp_section:toggle({
         name = "Box ESP",
         flag = "esp_box",
         default = false,
         tooltip = "Draw a 2D box around players",
         callback = function(val) getgenv().BoxESP = val end,
     })
-
-    esp:toggle({
+    esp_section:toggle({
         name = "Box Gradient",
         flag = "esp_box_gradient",
         default = false,
         tooltip = "Add a gradient fill to the box",
         callback = function(val) getgenv().BoxGradient = val end,
     })
-
-    esp:toggle({
+    esp_section:toggle({
         name = "Box Outline",
         flag = "esp_box_outline",
         default = false,
         tooltip = "Draw an outline around the box",
         callback = function(val) getgenv().BoxOutline = val end,
     })
-
-    esp:toggle({
+    esp_section:toggle({
         name = "Ring ESP",
         flag = "esp_ring",
         default = false,
         tooltip = "Draw a ring around the player's feet",
         callback = function(val) getgenv().RingESP = val end,
     })
-
-    esp:toggle({
+    esp_section:toggle({
         name = "Name ESP",
         flag = "esp_name",
         default = false,
         tooltip = "Display the player's name",
         callback = function(val) getgenv().NameESP = val end,
     })
-
-    esp:toggle({
+    esp_section:toggle({
         name = "Distance ESP",
         flag = "esp_distance",
         default = false,
@@ -880,9 +706,6 @@ do
     })
 end
 
--- ========================================================
--- MISC TAB
--- ========================================================
 do
     local panic = misc:section({ name = "panic", side = "left" })
     panic:toggle({ name = "panic mode", flag = "misc_panic", default = false,
@@ -909,9 +732,6 @@ do
         callback = function(val) getgenv().ModAction = val end })
 end
 
--- ========================================================
--- CONFIGS TAB
--- ========================================================
 do
     local configs = window:tab({ name = "configs" })
     local config = configs:section({ name = "Theming System", side = "right" })
@@ -973,9 +793,6 @@ do
     library:config_list_update()
 end
 
--- ========================================================
--- NOTIFICATIONS & RETURN
--- ========================================================
 for i = 1, 1 do
     library:notification({ text = "Astra loaded..." })
 end
