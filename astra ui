@@ -648,6 +648,59 @@ do
     camera:toggle({ name = "reduce camera recoil", callback = function(val) getgenv().ReduceCameraRecoil = val end })
     camera:slider({ name = "camera recoil reduction", min = 0, max = 100, default = 0, interval = 1,
         callback = function(val) getgenv().CameraRecoilReduction = val end })
+
+    -- ========================================================
+    -- NEW ESP SECTION (right side)
+    -- ========================================================
+    local esp = visuals:section({ name = "ESP", side = "right" })
+
+    esp:toggle({
+        name = "Box ESP",
+        flag = "esp_box",
+        default = false,
+        tooltip = "Draw a 2D box around players",
+        callback = function(val) getgenv().BoxESP = val end,
+    })
+
+    esp:toggle({
+        name = "Box Gradient",
+        flag = "esp_box_gradient",
+        default = false,
+        tooltip = "Add a gradient fill to the box",
+        callback = function(val) getgenv().BoxGradient = val end,
+    })
+
+    esp:toggle({
+        name = "Box Outline",
+        flag = "esp_box_outline",
+        default = false,
+        tooltip = "Draw an outline around the box",
+        callback = function(val) getgenv().BoxOutline = val end,
+    })
+
+    esp:toggle({
+        name = "Ring ESP",
+        flag = "esp_ring",
+        default = false,
+        tooltip = "Draw a ring around the player's feet",
+        callback = function(val) getgenv().RingESP = val end,
+    })
+
+    esp:toggle({
+        name = "Name ESP",
+        flag = "esp_name",
+        default = false,
+        tooltip = "Display the player's name",
+        callback = function(val) getgenv().NameESP = val end,
+    })
+
+    esp:toggle({
+        name = "Distance ESP",
+        flag = "esp_distance",
+        default = false,
+        tooltip = "Show distance to the player",
+        callback = function(val) getgenv().DistanceESP = val end,
+    })
 end
 
 do
