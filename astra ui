@@ -11,6 +11,222 @@ local rage = window:tab({ name = "rage" })
 local visuals = window:tab({ name = "visuals" })
 local misc = window:tab({ name = "misc" })
 
+-- Services
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local CoreGui = game:GetService("CoreGui")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+
+-- ==== FLOATING LOCK BUTTON LOGIC ====
+local lockGui = nil
+local lockButton = nil
+local lockActive = false
+local lockedTarget = nil
+
+-- Auto shoot cooldown
+local lastAutoShootTime = 0
+local autoShootCooldown = 0.15
+
+-- Helper functions
+local function getCharacter(plr) return plr.Character end
+local function IsKnocked(char)
+    if not char then return true end
+    local root = char:FindFirstChild("HumanoidRootPart")
+    if root and root.Anchored then return true end
+    for _, v in ipairs(char:GetDescendants()) do
+        if v:IsA("Motor6D") and not v.Enabled then return true end
+    end
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    return hum and hum.Health <= 0
+end
+
+local function getValidEnemies()
+    local enemies = {}
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr == LocalPlayer then continue end
+        if getgenv().FriendCheck and plr:IsFriendsWith(LocalPlayer.UserId) then continue end
+        local char = getCharacter(plr)
+        if not char then continue end
+        if getgenv().KnockCheck and IsKnocked(char) then continue end
+        if getgenv().ForcefieldCheck and char:FindFirstChildOfClass("ForceField") then continue end
+        if not char:FindFirstChild("HumanoidRootPart") then continue end
+        table.insert(enemies, plr)
+    end
+    return enemies
+end
+
+local function choosePlayer(playerList)
+    if #playerList == 0 then return nil end
+    local bestDist, best = math.huge, nil
+    for _, plr in ipairs(playerList) do
+        local root = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
+        if root then
+            local dist = (root.Position - Camera.CFrame.Position).Magnitude
+            if dist < bestDist then bestDist = dist; best = plr end
+        end
+    end
+    return best
+end
+
+local function updateLockedTarget()
+    if not lockActive then
+        lockedTarget = nil
+        getgenv().LockedTarget = nil
+        return
+    end
+    if lockedTarget and lockedTarget.Character and not IsKnocked(lockedTarget.Character) then
+        return
+    end
+    local enemies = getValidEnemies()
+    local newTarget = choosePlayer(enemies)
+    if newTarget then
+        lockedTarget = newTarget
+        getgenv().LockedTarget = newTarget
+    else
+        lockActive = false
+        getgenv().LockActive = false
+        lockedTarget = nil
+        getgenv().LockedTarget = nil
+        if lockButton then
+            lockButton.Image = "rbxassetid://6031098676" -- shield outline (unlocked)
+            lockButton.ImageColor3 = Color3.fromRGB(200, 200, 255)
+            lockButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+        end
+    end
+end
+
+local function autoShoot()
+    if not getgenv().AutoShoot then return end
+    if not lockActive or not lockedTarget then return end
+
+    local char = LocalPlayer.Character
+    if not char then return end
+    local tool = char:FindFirstChildWhichIsA("Tool")
+    if not tool then return end
+
+    local now = tick()
+    if now - lastAutoShootTime < autoShootCooldown then return end
+    lastAutoShootTime = now
+
+    local success = pcall(function()
+        tool:Activate()
+    end)
+    if not success then
+        local remote = game:GetService("ReplicatedStorage"):FindFirstChild("MAINEVENT")
+        if remote and remote:IsA("RemoteEvent") then
+            local targetPos = lockedTarget.Character and lockedTarget.Character:FindFirstChild("HumanoidRootPart")
+            if targetPos then
+                remote:FireServer("MOUSE", targetPos.Position)
+            end
+        end
+    end
+end
+
+-- Create the floating button with shield icons
+local function createLockButton()
+    if lockGui then
+        lockGui:Destroy()
+        lockGui = nil
+        lockButton = nil
+    end
+
+    lockGui = Instance.new("ScreenGui")
+    lockGui.Name = "LockButtonGui"
+    lockGui.Parent = CoreGui
+    lockGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    lockGui.ResetOnSpawn = false
+
+    lockButton = Instance.new("ImageButton")
+    lockButton.Name = "LockButton"
+    lockButton.Parent = lockGui
+    lockButton.Size = UDim2.new(0, 60, 0, 60)
+    lockButton.Position = UDim2.new(0.85, 0, 0.5, 0)
+    lockButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    lockButton.BackgroundTransparency = 0.1
+    lockButton.Image = "rbxassetid://6031098676" -- shield outline (unlocked)
+    lockButton.ImageColor3 = Color3.fromRGB(200, 200, 255)
+    lockButton.Draggable = true
+
+    local corner = Instance.new("UICorner", lockButton)
+    corner.CornerRadius = UDim.new(0, 8)
+
+    local stroke = Instance.new("UIStroke", lockButton)
+    stroke.Color = Color3.fromRGB(100, 100, 200)
+    stroke.Thickness = 1.5
+    stroke.Transparency = 0.3
+
+    lockButton.MouseButton1Click:Connect(function()
+        if not getgenv().LockButtonEnabled then return end
+        lockActive = not lockActive
+        getgenv().LockActive = lockActive
+        if lockActive then
+            local enemies = getValidEnemies()
+            local target = choosePlayer(enemies)
+            if target then
+                lockedTarget = target
+                getgenv().LockedTarget = target
+                lockButton.Image = "rbxassetid://6031098676" -- filled shield (locked)
+                lockButton.ImageColor3 = Color3.fromRGB(255, 200, 100)
+                lockButton.BackgroundColor3 = Color3.fromRGB(50, 35, 20)
+                stroke.Color = Color3.fromRGB(255, 200, 100)
+                stroke.Transparency = 0
+                if getgenv().LockNotifications then
+                    library:notification({ text = "Locked onto " .. target.DisplayName, duration = 2 })
+                end
+            else
+                lockActive = false
+                getgenv().LockActive = false
+                lockedTarget = nil
+                getgenv().LockedTarget = nil
+                lockButton.Image = "rbxassetid://6031098676"
+                lockButton.ImageColor3 = Color3.fromRGB(200, 200, 255)
+                lockButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+                stroke.Color = Color3.fromRGB(100, 100, 200)
+                stroke.Transparency = 0.3
+                if getgenv().LockNotifications then
+                    library:notification({ text = "No valid target found", duration = 2 })
+                end
+            end
+        else
+            lockedTarget = nil
+            getgenv().LockedTarget = nil
+            lockButton.Image = "rbxassetid://6031098676"
+            lockButton.ImageColor3 = Color3.fromRGB(200, 200, 255)
+            lockButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+            stroke.Color = Color3.fromRGB(100, 100, 200)
+            stroke.Transparency = 0.3
+            if getgenv().LockNotifications then
+                library:notification({ text = "Unlocked", duration = 1 })
+            end
+        end
+    end)
+
+    return lockButton
+end
+
+local function setLockButtonVisible(visible)
+    if lockGui then
+        lockGui.Enabled = visible
+    end
+end
+
+-- Continuous validation loop
+RunService.RenderStepped:Connect(function()
+    if getgenv().LockButtonEnabled then
+        updateLockedTarget()
+    end
+end)
+
+-- Auto shoot loop
+RunService.Heartbeat:Connect(function()
+    autoShoot()
+end)
+
+-- ============================================================
+-- LEGIT TAB
+-- ============================================================
 do
     local section = legit:section({ name = "camlock" })
     section:toggle({
@@ -58,6 +274,7 @@ do
         max = 1,
         interval = 0.001,
         float = true,
+        suffix = "",
         callback = function(val) getgenv().SmoothnessX = val end,
     })
 
@@ -69,6 +286,7 @@ do
         max = 1,
         interval = 0.001,
         float = true,
+        suffix = "",
         callback = function(val) getgenv().SmoothnessY = val end,
     })
 
@@ -95,27 +313,33 @@ do
         callback = function(val) getgenv().Prediction = val end,
     })
 
-    section:textbox({
+    section:slider({
         name = "horizental prediction",
         flag = "legit_horizentalprediction",
-        default = "0.115",
+        default = 0.115,
+        min = 0,
+        max = 1,
+        interval = 0.0001,
+        float = true,
         suffix = "",
         callback = function(val)
-            local num = tonumber(val) or 0.115
-            flags["legit_horizentalprediction"] = num
-            getgenv().HorizontalPrediction = num
+            flags["legit_horizentalprediction"] = val
+            getgenv().HorizontalPrediction = val
         end,
     })
 
-    section:textbox({
+    section:slider({
         name = "vertical prediction",
         flag = "legit_verticalprediction",
-        default = "0.1638",
+        default = 0.1638,
+        min = 0,
+        max = 1,
+        interval = 0.0001,
+        float = true,
         suffix = "",
         callback = function(val)
-            local num = tonumber(val) or 0.1638
-            flags["legit_verticalprediction"] = num
-            getgenv().VerticalPrediction = num
+            flags["legit_verticalprediction"] = val
+            getgenv().VerticalPrediction = val
         end,
     })
 
@@ -180,6 +404,7 @@ do
         callback = function(val) getgenv().MobileNearingEnemy = val end,
     })
 
+    -- Silent Aim section (right side)
     local section_silent = legit:section({ name = "silent aim", side = "right" })
     section_silent:toggle({
         name = "silent aim",
@@ -218,27 +443,33 @@ do
         callback = function(val) getgenv().SilentAimPrediction = val end,
     })
 
-    section_silent:textbox({
+    section_silent:slider({
         name = "horizental",
         flag = "legit_silent_horizentalprediction",
-        default = "0.1378",
+        default = 0.1378,
+        min = 0,
+        max = 1,
+        interval = 0.0001,
+        float = true,
         suffix = "",
         callback = function(val)
-            local num = tonumber(val) or 0.1378
-            flags["legit_silent_horizentalprediction"] = num
-            getgenv().SilentAimHorizontalPred = num
+            flags["legit_silent_horizentalprediction"] = val
+            getgenv().SilentAimHorizontalPred = val
         end,
     })
 
-    section_silent:textbox({
+    section_silent:slider({
         name = "vertical",
         flag = "legit_silent_verticalprediction",
-        default = "0.1844",
+        default = 0.1844,
+        min = 0,
+        max = 1,
+        interval = 0.0001,
+        float = true,
         suffix = "",
         callback = function(val)
-            local num = tonumber(val) or 0.1844
-            flags["legit_silent_verticalprediction"] = num
-            getgenv().SilentAimVerticalPred = num
+            flags["legit_silent_verticalprediction"] = val
+            getgenv().SilentAimVerticalPred = val
         end,
     })
 
@@ -271,16 +502,17 @@ do
         callback = function(val) getgenv().AutoAir = val end,
     })
 
-    section_silent:textbox({
+    section_silent:slider({
         name = "Auto Air Delay",
         flag = "legit_auto_air_delay",
-        default = "0.22",
+        default = 0.22,
+        min = 0,
+        max = 2,
+        interval = 0.01,
+        float = true,
         suffix = "s",
         tooltip = "Delay before auto air activates (seconds)",
-        callback = function(val)
-            local num = tonumber(val) or 0.22
-            getgenv().AutoAirDelay = num
-        end,
+        callback = function(val) getgenv().AutoAirDelay = val end,
     })
 
     section_silent:dropdown({
@@ -320,6 +552,7 @@ do
         callback = function(val) getgenv().SilentAimInstantHit = val end,
     })
 
+    -- Triggerbot section (right side)
     local section_trigger = legit:section({ name = "triggerbot", side = "right" })
     section_trigger:toggle({
         name = "enabled",
@@ -337,7 +570,7 @@ do
         min = 0,
         max = 400,
         custom = { ["0"] = "off" },
-        tooltip = "delay before shooting",
+        tooltip = "delay before shooting (0 = off)",
         callback = function(val) getgenv().TriggerbotReactionTime = val end,
     })
 
@@ -389,6 +622,7 @@ do
         callback = function(val) getgenv().MagnetPriority = val end,
     })
 
+    -- Checks section (left side)
     local section_checks = legit:section({ name = "checks", side = "left" })
     section_checks:toggle({
         name = "wall check",
@@ -428,64 +662,27 @@ do
     })
 end
 
+-- ============================================================
+-- RAGE TAB
+-- ============================================================
 do
     local movement = rage:section({ name = "movement", side = "left" })
+    
     movement:toggle({
-        name = "modify speed",
+        name = "walkspeed",
         flag = "rage_movement_speed_toggle",
         default = false,
-        callback = function(val) getgenv().ModifySpeed = val end,
+        tooltip = "Enable walkspeed modification (set to 50 by default)",
+        callback = function(val) 
+            getgenv().ModifySpeed = val 
+        end,
     })
-    movement:slider({
-        name = "walk speed",
-        suffix = "%",
-        flag = "rage_movement_speed",
-        default = 16,
-        min = 16,
-        max = 200,
-        callback = function(val) getgenv().WalkSpeed = val end,
-    })
-    movement:slider({
-        name = "jump power",
-        suffix = "%",
-        flag = "rage_movement_jump",
-        default = 50,
-        min = 0,
-        max = 200,
-        callback = function(val) getgenv().JumpPower = val end,
-    })
-    movement:toggle({
-        name = "modify jump",
-        flag = "rage_movement_jump_toggle",
-        default = false,
-        callback = function(val) getgenv().ModifyJumpPower = val end,
-    })
-    movement:toggle({
-        name = "fly",
-        flag = "rage_movement_fly",
-        default = false,
-        callback = function(val) getgenv().Fly = val end,
-    })
-    movement:slider({
-        name = "fly speed",
-        suffix = "%",
-        flag = "rage_movement_flyspeed",
-        default = 50,
-        min = 10,
-        max = 200,
-        callback = function(val) getgenv().FlySpeed = val end,
-    })
+
     movement:toggle({
         name = "noclip",
         flag = "rage_movement_noclip",
         default = false,
         callback = function(val) getgenv().Noclip = val end,
-    })
-    movement:toggle({
-        name = "bunny hop",
-        flag = "rage_movement_bhop",
-        default = false,
-        callback = function(val) getgenv().BunnyHop = val end,
     })
     movement:toggle({
         name = "infinite jump",
@@ -565,11 +762,7 @@ do
         callback = function(val) getgenv().RageAutoResolver = val end,
     })
 
-    -- ========================================================
-    -- CSync (Anti-Aim) – REPLACES old anti-aim section
-    -- ========================================================
-    local csync = rage:section({ name = "CSync (Anti-Aim)", side = "right" })
-
+    local csync = rage:section({ name = "Csync", side = "right" })
     csync:toggle({
         name = "Enabled",
         flag = "rage_csync_enabled",
@@ -577,7 +770,6 @@ do
         tooltip = "Enable CSync desync / anti-aim",
         callback = function(val) getgenv().CSyncEnabled = val end,
     })
-
     csync:dropdown({
         name = "Mode",
         flag = "rage_csync_mode",
@@ -587,7 +779,6 @@ do
         tooltip = "CSync movement pattern",
         callback = function(val) getgenv().CSyncType = val end,
     })
-
     csync:slider({
         name = "Distance",
         flag = "rage_csync_distance",
@@ -598,7 +789,6 @@ do
         tooltip = "Radius of CSync movement",
         callback = function(val) getgenv().CSyncDistance = val end,
     })
-
     csync:slider({
         name = "Height",
         flag = "rage_csync_height",
@@ -609,7 +799,6 @@ do
         tooltip = "Vertical offset",
         callback = function(val) getgenv().CSyncHeight = val end,
     })
-
     csync:slider({
         name = "Speed",
         flag = "rage_csync_speed",
@@ -620,7 +809,6 @@ do
         tooltip = "Rotation or randomness speed",
         callback = function(val) getgenv().CSyncSpeed = val end,
     })
-
     csync:slider({
         name = "Random Amount",
         flag = "rage_csync_random",
@@ -631,7 +819,6 @@ do
         tooltip = "Random offset range (for Random mode)",
         callback = function(val) getgenv().CSyncRandom = val end,
     })
-
     csync:toggle({
         name = "Visualize",
         flag = "rage_csync_visualize",
@@ -639,18 +826,6 @@ do
         tooltip = "Show a ghost of your desynced position",
         callback = function(val) getgenv().CSyncVisualize = val end,
     })
-
-    csync:colorpicker({
-        name = "Visual Color",
-        flag = "rage_csync_color",
-        default = Color3.fromRGB(255, 255, 255),
-        tooltip = "Color of the visual clone",
-        callback = function(val) getgenv().CSyncColor = val end,
-    })
-
-    -- ========================================================
-    -- YOUR ORIGINAL TOGGLES (kept at the bottom)
-    -- ========================================================
     csync:toggle({
         name = "legit anti aim",
         flag = "rage_antiaim_legit",
@@ -664,8 +839,60 @@ do
         tooltip = "prevent shooting at ground",
         callback = function(val) getgenv().AntiGroundShot = val end,
     })
+
+    -- Lock Button section (right side, below Csync)
+    local lockSection = rage:section({ name = "Lock Button", side = "right" })
+    lockSection:toggle({
+        name = "Enable Floating Button",
+        flag = "lock_button_enabled",
+        default = false,
+        tooltip = "Show/hide the floating lock button",
+        callback = function(val)
+            getgenv().LockButtonEnabled = val
+            if val then
+                if not lockGui then
+                    createLockButton()
+                end
+                setLockButtonVisible(true)
+            else
+                setLockButtonVisible(false)
+            end
+        end
+    })
+    lockSection:toggle({
+        name = "Auto Shoot",
+        flag = "auto_shoot",
+        default = false,
+        tooltip = "Automatically fire your weapon when locked onto a target",
+        callback = function(val)
+            getgenv().AutoShoot = val
+        end
+    })
+    lockSection:toggle({
+        name = "Show Lock Notifications",
+        flag = "lock_notifications",
+        default = true,
+        tooltip = "Show notifications when locking/unlocking",
+        callback = function(val)
+            getgenv().LockNotifications = val
+        end
+    })
+    -- Initialize button if toggle was previously enabled
+    if getgenv().LockButtonEnabled then
+        createLockButton()
+        setLockButtonVisible(true)
+    end
+    if getgenv().LockNotifications == nil then
+        getgenv().LockNotifications = true
+    end
+    if getgenv().AutoShoot == nil then
+        getgenv().AutoShoot = false
+    end
 end
 
+-- ============================================================
+-- VISUALS TAB
+-- ============================================================
 do
     local camera = visuals:section({ name = "camera", side = "left" })
     camera:toggle({ name = "toggle fov", flag = "toggle_fov", default = false,
@@ -681,62 +908,21 @@ do
     camera:slider({ name = "camera recoil reduction", min = 0, max = 100, default = 0, interval = 1,
         callback = function(val) getgenv().CameraRecoilReduction = val end })
 
-    -- ESP Section
     local esp = visuals:section({ name = "ESP", side = "right" })
-
-    esp:toggle({
-        name = "Box ESP",
-        flag = "esp_box",
-        default = false,
-        tooltip = "Draw a 2D box around players",
-        callback = function(val) getgenv().BoxESP = val end,
-    })
-
-    esp:toggle({
-        name = "Box Gradient",
-        flag = "esp_box_gradient",
-        default = false,
-        tooltip = "Add a gradient fill to the box",
-        callback = function(val) getgenv().BoxGradient = val end,
-    })
-
-    esp:toggle({
-        name = "Box Outline",
-        flag = "esp_box_outline",
-        default = false,
-        tooltip = "Draw an outline around the box",
-        callback = function(val) getgenv().BoxOutline = val end,
-    })
-
-    esp:toggle({
-        name = "Ring ESP",
-        flag = "esp_ring",
-        default = false,
-        tooltip = "Draw a ring around the player's feet",
-        callback = function(val) getgenv().RingESP = val end,
-    })
-
-    esp:toggle({
-        name = "Name ESP",
-        flag = "esp_name",
-        default = false,
-        tooltip = "Display the player's name",
-        callback = function(val) getgenv().NameESP = val end,
-    })
-
-    esp:toggle({
-        name = "Distance ESP",
-        flag = "esp_distance",
-        default = false,
-        tooltip = "Show distance to the player",
-        callback = function(val) getgenv().DistanceESP = val end,
-    })
+    esp:toggle({ name = "Box ESP", flag = "esp_box", default = false, callback = function(val) getgenv().BoxESP = val end })
+    esp:toggle({ name = "Box Gradient", flag = "esp_box_gradient", default = false, callback = function(val) getgenv().BoxGradient = val end })
+    esp:toggle({ name = "Box Outline", flag = "esp_box_outline", default = false, callback = function(val) getgenv().BoxOutline = val end })
+    esp:toggle({ name = "Ring ESP", flag = "esp_ring", default = false, callback = function(val) getgenv().RingESP = val end })
+    esp:toggle({ name = "Name ESP", flag = "esp_name", default = false, callback = function(val) getgenv().NameESP = val end })
+    esp:toggle({ name = "Distance ESP", flag = "esp_distance", default = false, callback = function(val) getgenv().DistanceESP = val end })
 end
 
+-- ============================================================
+-- MISC TAB
+-- ============================================================
 do
     local panic = misc:section({ name = "panic", side = "left" })
-    panic:toggle({ name = "panic mode", flag = "misc_panic", default = false,
-        callback = function(val) getgenv().PanicMode = val end })
+    panic:toggle({ name = "panic mode", flag = "misc_panic", default = false, callback = function(val) getgenv().PanicMode = val end })
     panic:keybind({ name = "panic key", flag = "misc_panic_key", default = Enum.KeyCode.P,
         callback = function(key)
             if key and type(key) == "userdata" and typeof(key) == "EnumItem" then
@@ -749,16 +935,16 @@ do
         callback = function(val) getgenv().PanicAction = val end })
 
     local antimod = misc:section({ name = "anti mod", side = "right" })
-    antimod:toggle({ name = "anti mod", flag = "misc_antimod", default = false,
-        callback = function(val) getgenv().AntiModEnabled = val end })
-    antimod:toggle({ name = "check mods on load", flag = "misc_antimod_checkonload", default = true,
-        callback = function(val) getgenv().CheckModsOnLoad = val end })
-    antimod:toggle({ name = "group check", flag = "misc_antimod_groupcheck", default = false,
-        callback = function(val) getgenv().GroupCheck = val end })
+    antimod:toggle({ name = "anti mod", flag = "misc_antimod", default = false, callback = function(val) getgenv().AntiModEnabled = val end })
+    antimod:toggle({ name = "check mods on load", flag = "misc_antimod_checkonload", default = true, callback = function(val) getgenv().CheckModsOnLoad = val end })
+    antimod:toggle({ name = "group check", flag = "misc_antimod_groupcheck", default = false, callback = function(val) getgenv().GroupCheck = val end })
     antimod:dropdown({ name = "mod action", flag = "misc_antimod_action", items = { "notify", "crash", "server hop", "kick" }, multi = false, default = "notify",
         callback = function(val) getgenv().ModAction = val end })
 end
 
+-- ============================================================
+-- CONFIG TAB
+-- ============================================================
 do
     local configs = window:tab({ name = "configs" })
     local config = configs:section({ name = "Theming System", side = "right" })
