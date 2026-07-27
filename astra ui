@@ -11,7 +11,6 @@ local rage = window:tab({ name = "rage" })
 local visuals = window:tab({ name = "visuals" })
 local misc = window:tab({ name = "misc" })
 
--- Services
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -19,17 +18,11 @@ local CoreGui = game:GetService("CoreGui")
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 
--- ==== FLOATING LOCK BUTTON LOGIC ====
 local lockGui = nil
 local lockButton = nil
 local lockActive = false
 local lockedTarget = nil
 
--- Auto shoot cooldown
-local lastAutoShootTime = 0
-local autoShootCooldown = 0.15
-
--- Helper functions
 local function getCharacter(plr) return plr.Character end
 local function IsKnocked(char)
     if not char then return true end
@@ -74,57 +67,53 @@ local function updateLockedTarget()
     if not lockActive then
         lockedTarget = nil
         getgenv().LockedTarget = nil
+        getgenv().LockActive = false
+        if lockButton then
+            lockButton.Image = "rbxassetid://6031098676"
+            lockButton.ImageColor3 = Color3.fromRGB(200, 200, 255)
+            lockButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+        end
         return
     end
+
+    getgenv().LockActive = true
+
     if lockedTarget and lockedTarget.Character and not IsKnocked(lockedTarget.Character) then
+        getgenv().LockedTarget = lockedTarget
+        if lockButton then
+            lockButton.Image = "rbxassetid://6031098676"
+            lockButton.ImageColor3 = Color3.fromRGB(255, 200, 100)
+            lockButton.BackgroundColor3 = Color3.fromRGB(50, 35, 20)
+        end
         return
     end
+
     local enemies = getValidEnemies()
     local newTarget = choosePlayer(enemies)
     if newTarget then
         lockedTarget = newTarget
         getgenv().LockedTarget = newTarget
-    else
-        lockActive = false
-        getgenv().LockActive = false
-        lockedTarget = nil
-        getgenv().LockedTarget = nil
         if lockButton then
-            lockButton.Image = "rbxassetid://6031098676" -- shield outline (unlocked)
-            lockButton.ImageColor3 = Color3.fromRGB(200, 200, 255)
+            lockButton.Image = "rbxassetid://6031098676"
+            lockButton.ImageColor3 = Color3.fromRGB(255, 200, 100)
+            lockButton.BackgroundColor3 = Color3.fromRGB(50, 35, 20)
+        end
+        if getgenv().LockNotifications then
+            library:notification({ text = "Locked onto " .. newTarget.DisplayName, duration = 2 })
+        end
+    else
+        if lockedTarget then
+            lockedTarget = nil
+            getgenv().LockedTarget = nil
+        end
+        if lockButton then
+            lockButton.Image = "rbxassetid://6031098676"
+            lockButton.ImageColor3 = Color3.fromRGB(255, 255, 100)
             lockButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
         end
     end
 end
 
-local function autoShoot()
-    if not getgenv().AutoShoot then return end
-    if not lockActive or not lockedTarget then return end
-
-    local char = LocalPlayer.Character
-    if not char then return end
-    local tool = char:FindFirstChildWhichIsA("Tool")
-    if not tool then return end
-
-    local now = tick()
-    if now - lastAutoShootTime < autoShootCooldown then return end
-    lastAutoShootTime = now
-
-    local success = pcall(function()
-        tool:Activate()
-    end)
-    if not success then
-        local remote = game:GetService("ReplicatedStorage"):FindFirstChild("MAINEVENT")
-        if remote and remote:IsA("RemoteEvent") then
-            local targetPos = lockedTarget.Character and lockedTarget.Character:FindFirstChild("HumanoidRootPart")
-            if targetPos then
-                remote:FireServer("MOUSE", targetPos.Position)
-            end
-        end
-    end
-end
-
--- Create the floating button with shield icons
 local function createLockButton()
     if lockGui then
         lockGui:Destroy()
@@ -145,7 +134,7 @@ local function createLockButton()
     lockButton.Position = UDim2.new(0.85, 0, 0.5, 0)
     lockButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
     lockButton.BackgroundTransparency = 0.1
-    lockButton.Image = "rbxassetid://6031098676" -- shield outline (unlocked)
+    lockButton.Image = "rbxassetid://6031098676"
     lockButton.ImageColor3 = Color3.fromRGB(200, 200, 255)
     lockButton.Draggable = true
 
@@ -160,38 +149,15 @@ local function createLockButton()
     lockButton.MouseButton1Click:Connect(function()
         if not getgenv().LockButtonEnabled then return end
         lockActive = not lockActive
-        getgenv().LockActive = lockActive
         if lockActive then
-            local enemies = getValidEnemies()
-            local target = choosePlayer(enemies)
-            if target then
-                lockedTarget = target
-                getgenv().LockedTarget = target
-                lockButton.Image = "rbxassetid://6031098676" -- filled shield (locked)
-                lockButton.ImageColor3 = Color3.fromRGB(255, 200, 100)
-                lockButton.BackgroundColor3 = Color3.fromRGB(50, 35, 20)
-                stroke.Color = Color3.fromRGB(255, 200, 100)
-                stroke.Transparency = 0
-                if getgenv().LockNotifications then
-                    library:notification({ text = "Locked onto " .. target.DisplayName, duration = 2 })
-                end
-            else
-                lockActive = false
-                getgenv().LockActive = false
-                lockedTarget = nil
-                getgenv().LockedTarget = nil
-                lockButton.Image = "rbxassetid://6031098676"
-                lockButton.ImageColor3 = Color3.fromRGB(200, 200, 255)
-                lockButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-                stroke.Color = Color3.fromRGB(100, 100, 200)
-                stroke.Transparency = 0.3
-                if getgenv().LockNotifications then
-                    library:notification({ text = "No valid target found", duration = 2 })
-                end
+            updateLockedTarget()
+            if getgenv().LockNotifications then
+              
             end
         else
             lockedTarget = nil
             getgenv().LockedTarget = nil
+            getgenv().LockActive = false
             lockButton.Image = "rbxassetid://6031098676"
             lockButton.ImageColor3 = Color3.fromRGB(200, 200, 255)
             lockButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
@@ -212,21 +178,41 @@ local function setLockButtonVisible(visible)
     end
 end
 
--- Continuous validation loop
 RunService.RenderStepped:Connect(function()
     if getgenv().LockButtonEnabled then
-        updateLockedTarget()
+        if lockActive then
+            updateLockedTarget()
+        else
+            if getgenv().LockActive then
+                getgenv().LockActive = false
+                getgenv().LockedTarget = nil
+            end
+        end
     end
 end)
 
--- Auto shoot loop
-RunService.Heartbeat:Connect(function()
-    autoShoot()
-end)
+local lastAutoShootTime = 0
+local autoShootCooldown = 0.15
+local function autoShoot()
+    if not getgenv().AutoShoot then return end
+    if not lockActive or not lockedTarget then return end
 
--- ============================================================
--- LEGIT TAB
--- ============================================================
+    local char = LocalPlayer.Character
+    if not char then return end
+    local tool = char:FindFirstChildWhichIsA("Tool")
+    if not tool then return end
+
+    local now = tick()
+    if now - lastAutoShootTime < autoShootCooldown then return end
+    lastAutoShootTime = now
+
+    pcall(function()
+        tool:Activate()
+    end)
+end
+
+RunService.Heartbeat:Connect(autoShoot)
+
 do
     local section = legit:section({ name = "camlock" })
     section:toggle({
@@ -404,7 +390,6 @@ do
         callback = function(val) getgenv().MobileNearingEnemy = val end,
     })
 
-    -- Silent Aim section (right side)
     local section_silent = legit:section({ name = "silent aim", side = "right" })
     section_silent:toggle({
         name = "silent aim",
@@ -552,7 +537,6 @@ do
         callback = function(val) getgenv().SilentAimInstantHit = val end,
     })
 
-    -- Triggerbot section (right side)
     local section_trigger = legit:section({ name = "triggerbot", side = "right" })
     section_trigger:toggle({
         name = "enabled",
@@ -622,7 +606,6 @@ do
         callback = function(val) getgenv().MagnetPriority = val end,
     })
 
-    -- Checks section (left side)
     local section_checks = legit:section({ name = "checks", side = "left" })
     section_checks:toggle({
         name = "wall check",
@@ -662,12 +645,8 @@ do
     })
 end
 
--- ============================================================
--- RAGE TAB
--- ============================================================
 do
     local movement = rage:section({ name = "movement", side = "left" })
-    
     movement:toggle({
         name = "walkspeed",
         flag = "rage_movement_speed_toggle",
@@ -840,7 +819,6 @@ do
         callback = function(val) getgenv().AntiGroundShot = val end,
     })
 
-    -- Lock Button section (right side, below Csync)
     local lockSection = rage:section({ name = "Lock Button", side = "right" })
     lockSection:toggle({
         name = "Enable Floating Button",
@@ -877,7 +855,6 @@ do
             getgenv().LockNotifications = val
         end
     })
-    -- Initialize button if toggle was previously enabled
     if getgenv().LockButtonEnabled then
         createLockButton()
         setLockButtonVisible(true)
@@ -890,9 +867,6 @@ do
     end
 end
 
--- ============================================================
--- VISUALS TAB
--- ============================================================
 do
     local camera = visuals:section({ name = "camera", side = "left" })
     camera:toggle({ name = "toggle fov", flag = "toggle_fov", default = false,
@@ -917,9 +891,6 @@ do
     esp:toggle({ name = "Distance ESP", flag = "esp_distance", default = false, callback = function(val) getgenv().DistanceESP = val end })
 end
 
--- ============================================================
--- MISC TAB
--- ============================================================
 do
     local panic = misc:section({ name = "panic", side = "left" })
     panic:toggle({ name = "panic mode", flag = "misc_panic", default = false, callback = function(val) getgenv().PanicMode = val end })
@@ -942,9 +913,6 @@ do
         callback = function(val) getgenv().ModAction = val end })
 end
 
--- ============================================================
--- CONFIG TAB
--- ============================================================
 do
     local configs = window:tab({ name = "configs" })
     local config = configs:section({ name = "Theming System", side = "right" })
