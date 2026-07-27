@@ -263,13 +263,24 @@ do
         callback = function(val) getgenv().SilentAimAimMethod = val end,
     })
 
-    
     section_silent:toggle({
-        name = "auto Air",
+        name = "Auto Air",
         flag = "legit_auto_air",
         default = false,
-        tooltip = "Automatically adjust aim for airborne targets (mobile friendly)",
+        tooltip = "Automatically switch to air part when target jumps",
         callback = function(val) getgenv().AutoAir = val end,
+    })
+
+    section_silent:textbox({
+        name = "Auto Air Delay",
+        flag = "legit_auto_air_delay",
+        default = "0.22",
+        suffix = "s",
+        tooltip = "Delay before auto air activates (seconds)",
+        callback = function(val)
+            local num = tonumber(val) or 0.22
+            getgenv().AutoAirDelay = num
+        end,
     })
 
     section_silent:dropdown({
@@ -509,9 +520,6 @@ do
         callback = function(val) getgenv().AutoArmorProximity = val end,
     })
 
-    -- Added "Auto Air" toggle in Rage > Movement (optional, but we already added it in Silent Aim, so keep as is)
-    -- If you want it in both places, we can add here too, but we already placed it in Silent Aim.
-
     local ragemode = rage:section({ name = "rage mode", side = "left" })
     ragemode:toggle({
         name = "enabled",
@@ -557,87 +565,99 @@ do
         callback = function(val) getgenv().RageAutoResolver = val end,
     })
 
-    local anti_aim = rage:section({ name = "anti-aim", side = "right" })
-    anti_aim:toggle({
-        name = "enabled",
-        flag = "rage_antiaim_enabled",
+    -- ========================================================
+    -- CSync (Anti-Aim) – REPLACES old anti-aim section
+    -- ========================================================
+    local csync = rage:section({ name = "CSync (Anti-Aim)", side = "right" })
+
+    csync:toggle({
+        name = "Enabled",
+        flag = "rage_csync_enabled",
         default = false,
-        callback = function(val) getgenv().AntiAimEnabled = val end,
+        tooltip = "Enable CSync desync / anti-aim",
+        callback = function(val) getgenv().CSyncEnabled = val end,
     })
-    anti_aim:dropdown({
-        name = "mode",
-        flag = "rage_antiaim_mode",
-        items = { "spinbot", "jitter", "static" },
+
+    csync:dropdown({
+        name = "Mode",
+        flag = "rage_csync_mode",
+        items = { "Orbit", "Random", "Spiral", "Spherical", "Attach" },
+        default = "Orbit",
         multi = false,
-        default = "spinbot",
-        callback = function(val) getgenv().AntiAimMode = val end,
+        tooltip = "CSync movement pattern",
+        callback = function(val) getgenv().CSyncType = val end,
     })
-    anti_aim:slider({
-        name = "spin speed",
-        suffix = "%",
-        flag = "rage_antiaim_speed",
-        default = 100,
-        min = 0,
-        max = 200,
-        callback = function(val) getgenv().AntiAimSpinSpeed = val end,
-    })
-    anti_aim:slider({
-        name = "jitter range",
-        suffix = "°",
-        flag = "rage_antiaim_jitter",
+
+    csync:slider({
+        name = "Distance",
+        flag = "rage_csync_distance",
         default = 10,
         min = 0,
-        max = 90,
-        callback = function(val) getgenv().AntiAimJitterRange = val end,
+        max = 50,
+        suffix = "studs",
+        tooltip = "Radius of CSync movement",
+        callback = function(val) getgenv().CSyncDistance = val end,
     })
-    anti_aim:toggle({
-        name = "fake lag",
-        flag = "rage_antiaim_fakelag",
-        default = false,
-        callback = function(val) getgenv().FakeLagEnabled = val end,
+
+    csync:slider({
+        name = "Height",
+        flag = "rage_csync_height",
+        default = 2,
+        min = 0,
+        max = 20,
+        suffix = "studs",
+        tooltip = "Vertical offset",
+        callback = function(val) getgenv().CSyncHeight = val end,
     })
-    anti_aim:slider({
-        name = "fake lag amount",
-        flag = "rage_antiaim_fakelag_amount",
+
+    csync:slider({
+        name = "Speed",
+        flag = "rage_csync_speed",
         default = 10,
         min = 0,
-        max = 60,
-        callback = function(val) getgenv().FakeLagAmount = val end,
+        max = 50,
+        suffix = "",
+        tooltip = "Rotation or randomness speed",
+        callback = function(val) getgenv().CSyncSpeed = val end,
     })
-    anti_aim:toggle({
-        name = "desync",
-        flag = "rage_antiaim_desync",
-        default = false,
-        callback = function(val) getgenv().DesyncEnabled = val end,
-    })
-    anti_aim:slider({
-        name = "desync amount",
-        suffix = "°",
-        flag = "rage_antiaim_desync_amount",
-        default = 60,
+
+    csync:slider({
+        name = "Random Amount",
+        flag = "rage_csync_random",
+        default = 20,
         min = 0,
-        max = 180,
-        callback = function(val) getgenv().DesyncAmount = val end,
+        max = 100,
+        suffix = "studs",
+        tooltip = "Random offset range (for Random mode)",
+        callback = function(val) getgenv().CSyncRandom = val end,
     })
-    anti_aim:toggle({
-        name = "fake angle",
-        flag = "rage_antiaim_fakeangle",
+
+    csync:toggle({
+        name = "Visualize",
+        flag = "rage_csync_visualize",
         default = false,
-        callback = function(val) getgenv().FakeAngle = val end,
+        tooltip = "Show a ghost of your desynced position",
+        callback = function(val) getgenv().CSyncVisualize = val end,
     })
-    anti_aim:toggle({
-        name = "anti resolution",
-        flag = "rage_antiaim_antiresolution",
-        default = false,
-        callback = function(val) getgenv().AntiResolution = val end,
+
+    csync:colorpicker({
+        name = "Visual Color",
+        flag = "rage_csync_color",
+        default = Color3.fromRGB(255, 255, 255),
+        tooltip = "Color of the visual clone",
+        callback = function(val) getgenv().CSyncColor = val end,
     })
-    anti_aim:toggle({
+
+    -- ========================================================
+    -- YOUR ORIGINAL TOGGLES (kept at the bottom)
+    -- ========================================================
+    csync:toggle({
         name = "legit anti aim",
         flag = "rage_antiaim_legit",
         default = false,
         callback = function(val) getgenv().LegitAntiAim = val end,
     })
-    anti_aim:toggle({
+    csync:toggle({
         name = "anti ground shot",
         flag = "legit_antigroundshot",
         default = false,
@@ -661,43 +681,50 @@ do
     camera:slider({ name = "camera recoil reduction", min = 0, max = 100, default = 0, interval = 1,
         callback = function(val) getgenv().CameraRecoilReduction = val end })
 
-    local esp_section = visuals:section({ name = "ESP", side = "right" })
-    esp_section:toggle({
+    -- ESP Section
+    local esp = visuals:section({ name = "ESP", side = "right" })
+
+    esp:toggle({
         name = "Box ESP",
         flag = "esp_box",
         default = false,
         tooltip = "Draw a 2D box around players",
         callback = function(val) getgenv().BoxESP = val end,
     })
-    esp_section:toggle({
+
+    esp:toggle({
         name = "Box Gradient",
         flag = "esp_box_gradient",
         default = false,
         tooltip = "Add a gradient fill to the box",
         callback = function(val) getgenv().BoxGradient = val end,
     })
-    esp_section:toggle({
+
+    esp:toggle({
         name = "Box Outline",
         flag = "esp_box_outline",
         default = false,
         tooltip = "Draw an outline around the box",
         callback = function(val) getgenv().BoxOutline = val end,
     })
-    esp_section:toggle({
+
+    esp:toggle({
         name = "Ring ESP",
         flag = "esp_ring",
         default = false,
         tooltip = "Draw a ring around the player's feet",
         callback = function(val) getgenv().RingESP = val end,
     })
-    esp_section:toggle({
+
+    esp:toggle({
         name = "Name ESP",
         flag = "esp_name",
         default = false,
         tooltip = "Display the player's name",
         callback = function(val) getgenv().NameESP = val end,
     })
-    esp_section:toggle({
+
+    esp:toggle({
         name = "Distance ESP",
         flag = "esp_distance",
         default = false,
