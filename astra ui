@@ -390,6 +390,15 @@ do
         callback = function(val) getgenv().MobileNearingEnemy = val end,
     })
 
+    -- NEW: Sticky Aim
+    section:toggle({
+        name = "sticky aim",
+        flag = "legit_stickyaim",
+        default = true,
+        tooltip = "Keep aim locked on current target (double‑tap key to cycle)",
+        callback = function(val) getgenv().StickyAim = val end,
+    })
+
     local section_silent = legit:section({ name = "silent aim", side = "right" })
     section_silent:toggle({
         name = "silent aim",
@@ -604,6 +613,28 @@ do
         multi = false,
         tooltip = "priority for magnet",
         callback = function(val) getgenv().MagnetPriority = val end,
+    })
+
+    -- NEW: Swipe Protection
+    section_trigger:toggle({
+        name = "swipe protection",
+        flag = "legit_swipeprotection",
+        default = true,
+        tooltip = "Prevent triggerbot from shooting while crosshair is moving fast",
+        callback = function(val) getgenv().SwipeProtection = val end,
+    })
+
+    section_trigger:slider({
+        name = "wont fire time",
+        suffix = "s",
+        flag = "legit_swipeidletime",
+        default = 0.15,
+        min = 0,
+        max = 1,
+        interval = 0.01,
+        float = true,
+        tooltip = "Time crosshair must be steady before triggerbot fires",
+        callback = function(val) getgenv().SwipeIdleTime = val end,
     })
 
     local section_checks = legit:section({ name = "checks", side = "left" })
