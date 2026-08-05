@@ -390,13 +390,27 @@ do
         callback = function(val) getgenv().MobileNearingEnemy = val end,
     })
 
-    -- NEW: Sticky Aim
+    -- Sticky Aim Toggle
     section:toggle({
         name = "sticky aim",
         flag = "legit_stickyaim",
         default = true,
         tooltip = "Keep aim locked on current target (double‑tap key to cycle)",
         callback = function(val) getgenv().StickyAim = val end,
+    })
+
+    -- Sticky Aim Cycle Time Slider (smoothness)
+    section:slider({
+        name = "sticky cycle time",
+        suffix = "s",
+        flag = "legit_stickycycletime",
+        default = 0.3,
+        min = 0.1,
+        max = 1.0,
+        interval = 0.05,
+        float = true,
+        tooltip = "Time window for double‑tap to cycle target",
+        callback = function(val) getgenv().StickyCycleTime = val end,
     })
 
     local section_silent = legit:section({ name = "silent aim", side = "right" })
@@ -615,7 +629,7 @@ do
         callback = function(val) getgenv().MagnetPriority = val end,
     })
 
-    -- NEW: Swipe Protection
+    -- Swipe Protection Toggle
     section_trigger:toggle({
         name = "swipe protection",
         flag = "legit_swipeprotection",
@@ -624,6 +638,7 @@ do
         callback = function(val) getgenv().SwipeProtection = val end,
     })
 
+    -- Won't Fire Time Slider
     section_trigger:slider({
         name = "wont fire time",
         suffix = "s",
