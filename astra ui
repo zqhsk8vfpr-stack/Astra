@@ -529,6 +529,15 @@ do
         callback = function(val) getgenv().SilentAimAntiAimView = val end,
     })
 
+    -- MOVED: Anti Ground Shot
+    section_silent:toggle({
+        name = "anti ground shot",
+        flag = "legit_antigroundshot",
+        default = false,
+        tooltip = "prevent shooting at ground",
+        callback = function(val) getgenv().AntiGroundShot = val end,
+    })
+
     section_silent:toggle({
         name = "instant hit [not coded]",
         flag = "legit_silentinstanthit",
@@ -741,82 +750,37 @@ do
         callback = function(val) getgenv().RageAutoResolver = val end,
     })
 
-    local csync = rage:section({ name = "Csync", side = "right" })
-    csync:toggle({
+    local antiaim = rage:section({ name = "Anti Aim", side = "right" })
+    antiaim:toggle({
         name = "Enabled",
-        flag = "rage_csync_enabled",
+        flag = "rage_antiaim_enabled",
         default = false,
-        tooltip = "Enable CSync desync / anti-aim",
-        callback = function(val) getgenv().CSyncEnabled = val end,
+        tooltip = "Enable Anti Aim",
+        callback = function(val) getgenv().AntiAimEnabled = val end,
     })
-    csync:dropdown({
-        name = "Mode",
-        flag = "rage_csync_mode",
-        items = { "Orbit", "Random", "Spiral", "Spherical", "Attach" },
-        default = "Orbit",
+    antiaim:dropdown({
+        name = "anti aim type",
+        flag = "rage_antiaim_type",
+        items = { "up", "down", "back", "zero aim" },   -- 4 modes
+        default = "",
         multi = false,
-        tooltip = "CSync movement pattern",
-        callback = function(val) getgenv().CSyncType = val end,
+        tooltip = "Anti Aim movement",
+        callback = function(val) getgenv().AntiAimMode = val end,
     })
-    csync:slider({
-        name = "Distance",
-        flag = "rage_csync_distance",
-        default = 10,
-        min = 0,
-        max = 50,
-        suffix = "studs",
-        tooltip = "Radius of CSync movement",
-        callback = function(val) getgenv().CSyncDistance = val end,
-    })
-    csync:slider({
-        name = "Height",
-        flag = "rage_csync_height",
-        default = 2,
-        min = 0,
-        max = 20,
-        suffix = "studs",
-        tooltip = "Vertical offset",
-        callback = function(val) getgenv().CSyncHeight = val end,
-    })
-    csync:slider({
-        name = "Speed",
-        flag = "rage_csync_speed",
-        default = 10,
-        min = 0,
-        max = 50,
-        suffix = "",
-        tooltip = "Rotation or randomness speed",
-        callback = function(val) getgenv().CSyncSpeed = val end,
-    })
-    csync:slider({
-        name = "Random Amount",
-        flag = "rage_csync_random",
-        default = 20,
-        min = 0,
-        max = 100,
-        suffix = "studs",
-        tooltip = "Random offset range (for Random mode)",
-        callback = function(val) getgenv().CSyncRandom = val end,
-    })
-    csync:toggle({
+    
+    antiaim:toggle({
         name = "Visualize",
-        flag = "rage_csync_visualize",
+        flag = "rage_antiaim_visualize",
         default = false,
-        tooltip = "Show a ghost of your desynced position",
-        callback = function(val) getgenv().CSyncVisualize = val end,
+        tooltip = "Show a ghost of your anti aim position",
+        callback = function(val) getgenv().AntiAimVisualize = val end,
     })
-    csync:toggle({
+    
+    antiaim:toggle({
         name = "legit anti aim",
         flag = "rage_antiaim_legit",
         default = false,
         callback = function(val) getgenv().LegitAntiAim = val end,
-    })
-    csync:toggle({
-        name = "anti ground shot",
-        flag = "legit_antigroundshot",
-        default = false,
-        tooltip = "prevent shooting at ground",
-        callback = function(val) getgenv().AntiGroundShot = val end,
     })
 
     local lockSection = rage:section({ name = "Lock Button", side = "right" })
