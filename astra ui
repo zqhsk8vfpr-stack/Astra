@@ -521,6 +521,17 @@ do
         callback = function(val) getgenv().SilentAimAccuracy = val end,
     })
 
+    section_silent:dropdown({
+    name = "lock method",
+    flag = "legitlocking_method",
+    items = { "index", "namecall" },
+    multi = false,
+    default = "namecall",
+    callback = function(val)
+        getgenv().LockMethod = val
+    end,
+})
+
     section_silent:toggle({
         name = "anti aimview",
         flag = "legit_antiaimview",
