@@ -203,7 +203,7 @@ do
     local section = legit:section({ name = "silent aim", side = "right" })
     section:toggle({
         name = "silent aim",
-        flag = "legit_bulletredirection",
+        flag = "legit_silentaim",
         default = false,
         tooltip = "master switch for silent aim, helps with aiming by automatically redirecting bullets based on the below settings",
         callback = function(val) getgenv().SilentAimEnabled = val end,
