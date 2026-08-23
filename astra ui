@@ -1,4 +1,5 @@
 local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/i77lhm/vaderpaste/refs/heads/main/library.lua"))()
+if not library then error("UI library failed to load") end
 local flags = library.flags
 
 local window = library:window({
@@ -151,9 +152,6 @@ local function createLockButton()
         lockActive = not lockActive
         if lockActive then
             updateLockedTarget()
-            if getgenv().LockNotifications then
-              
-            end
         else
             lockedTarget = nil
             getgenv().LockedTarget = nil
@@ -246,6 +244,7 @@ do
         callback = function(val) getgenv().Activation = val end,
     })
 
+
     section:toggle({
         name = "smoothness",
         flag = "legit_smoothness",
@@ -293,6 +292,37 @@ do
         callback = function(val) getgenv().EasingDirection = val end,
     })
 
+section:textbox({
+    name = "jump offset",
+    label = "Jump Offset",
+    flag = "legit_jump_offset",
+    default = "",
+    placeholder = "jump offset",
+    tooltip = "vertical offset when target is jumping negative = aim higher",
+    callback = function(val)
+        local num = tonumber(val)
+        if num then
+            flags["legit_jump_offset"] = num
+            getgenv().JumpOffset = num
+        end
+    end,
+})
+
+section:textbox({
+    name = "fall offset",
+    label = "Fall Offset",
+    flag = "legit_fall_offset",
+    default = "",
+    placeholder = "fall offset",
+    tooltip = "vertical offset when target is falling positive = aim lower",
+    callback = function(val)
+        local num = tonumber(val)
+        if num then
+            flags["legit_fall_offset"] = num
+            getgenv().FallOffset = num
+        end
+    end,
+})
     section:toggle({
         name = "prediction",
         flag = "legit_prediction",
@@ -479,58 +509,16 @@ do
         callback = function(val) getgenv().SilentAimAimMethod = val end,
     })
 
-    section_silent:toggle({
-        name = "Auto Air",
-        flag = "legit_auto_air",
-        default = false,
-        tooltip = "Automatically switch to air part when target jumps",
-        callback = function(val) getgenv().AutoAir = val end,
-    })
-
-    section_silent:slider({
-        name = "Auto Air Delay",
-        flag = "legit_auto_air_delay",
-        default = 0.22,
-        min = 0,
-        max = 2,
-        interval = 0.01,
-        float = true,
-        suffix = "s",
-        tooltip = "Delay before auto air activates (seconds)",
-        callback = function(val) getgenv().AutoAirDelay = val end,
-    })
-
     section_silent:dropdown({
-        name = "air aim part",
-        flag = "legit_silent_airaimpart",
-        items = { "Head", "HumanoidRootPart", "UpperTorso", "LowerTorso", "RightFoot", "LeftFoot", "RightUpperLeg", "LeftUpperLeg" },
+        name = "lock method",
+        flag = "legitlocking_method",
+        items = { "index", "namecall" },
         multi = false,
-        default = "HumanoidRootPart",
-        tooltip = "aim at this part when target is airborne",
-        callback = function(val) getgenv().SilentAimAirAimPart = val end,
+        default = "namecall",
+        callback = function(val)
+            getgenv().LockMethod = val
+        end,
     })
-
-    section_silent:slider({
-        name = "accuracy",
-        suffix = "%",
-        flag = "legit_silent_accuracy",
-        default = 70,
-        min = 0,
-        max = 100,
-        tooltip = "accuracy of the redirect",
-        callback = function(val) getgenv().SilentAimAccuracy = val end,
-    })
-
-    section_silent:dropdown({
-    name = "lock method",
-    flag = "legitlocking_method",
-    items = { "index", "namecall" },
-    multi = false,
-    default = "namecall",
-    callback = function(val)
-        getgenv().LockMethod = val
-    end,
-})
 
     section_silent:toggle({
         name = "anti aimview",
@@ -540,7 +528,6 @@ do
         callback = function(val) getgenv().SilentAimAntiAimView = val end,
     })
 
-    -- MOVED: Anti Ground Shot
     section_silent:toggle({
         name = "anti ground shot",
         flag = "legit_antigroundshot",
@@ -772,7 +759,7 @@ do
     antiaim:dropdown({
         name = "anti aim type",
         flag = "rage_antiaim_type",
-        items = { "up", "down", "back", "zero aim" },   -- 4 modes
+        items = { "up", "down", "back", "zero aim" },
         default = "",
         multi = false,
         tooltip = "Anti Aim movement",
