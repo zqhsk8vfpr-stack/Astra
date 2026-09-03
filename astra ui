@@ -7,938 +7,1024 @@ local window = library:window({
     size = UDim2.fromOffset(500, 350),
 })
 
-local legit = window:tab({ name = "legit" })
-local rage = window:tab({ name = "rage" })
-local visuals = window:tab({ name = "visuals" })
-local misc = window:tab({ name = "misc" })
+local combat = window:tab({ name = "Combat" })
+local visuals = window:tab({ name = "Visuals" })
+local misc = window:tab({ name = "Misc" })
+local weapons = window:tab({ name = "Weapons" })
+local settings = window:tab({ name = "Settings" })
 
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
-local CoreGui = game:GetService("CoreGui")
-local LocalPlayer = Players.LocalPlayer
-local Camera = workspace.CurrentCamera
+local aimbotSection = combat:section({ name = "Aimbot" })
 
-local lockGui = nil
-local lockButton = nil
-local lockActive = false
-local lockedTarget = nil
+aimbotSection:toggle({
+    name = "Enable",
+    flag = "combat_enable",
+    default = false,
+    tooltip = "Master switch for aim assist",
+    callback = function(val) getgenv().Enabled = val end,
+})
 
-local function getCharacter(plr) return plr.Character end
-local function IsKnocked(char)
-    if not char then return true end
-    local root = char:FindFirstChild("HumanoidRootPart")
-    if root and root.Anchored then return true end
-    for _, v in ipairs(char:GetDescendants()) do
-        if v:IsA("Motor6D") and not v.Enabled then return true end
-    end
-    local hum = char:FindFirstChildOfClass("Humanoid")
-    return hum and hum.Health <= 0
-end
-
-local function getValidEnemies()
-    local enemies = {}
-    for _, plr in ipairs(Players:GetPlayers()) do
-        if plr == LocalPlayer then continue end
-        if getgenv().FriendCheck and plr:IsFriendsWith(LocalPlayer.UserId) then continue end
-        local char = getCharacter(plr)
-        if not char then continue end
-        if getgenv().KnockCheck and IsKnocked(char) then continue end
-        if getgenv().ForcefieldCheck and char:FindFirstChildOfClass("ForceField") then continue end
-        if not char:FindFirstChild("HumanoidRootPart") then continue end
-        table.insert(enemies, plr)
-    end
-    return enemies
-end
-
-local function choosePlayer(playerList)
-    if #playerList == 0 then return nil end
-    local bestDist, best = math.huge, nil
-    for _, plr in ipairs(playerList) do
-        local root = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
-        if root then
-            local dist = (root.Position - Camera.CFrame.Position).Magnitude
-            if dist < bestDist then bestDist = dist; best = plr end
-        end
-    end
-    return best
-end
-
-local function updateLockedTarget()
-    if not lockActive then
-        lockedTarget = nil
-        getgenv().LockedTarget = nil
-        getgenv().LockActive = false
-        if lockButton then
-            lockButton.Image = "rbxassetid://6031098676"
-            lockButton.ImageColor3 = Color3.fromRGB(200, 200, 255)
-            lockButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-        end
-        return
-    end
-
-    getgenv().LockActive = true
-
-    if lockedTarget and lockedTarget.Character and not IsKnocked(lockedTarget.Character) then
-        getgenv().LockedTarget = lockedTarget
-        if lockButton then
-            lockButton.Image = "rbxassetid://6031098676"
-            lockButton.ImageColor3 = Color3.fromRGB(255, 200, 100)
-            lockButton.BackgroundColor3 = Color3.fromRGB(50, 35, 20)
-        end
-        return
-    end
-
-    local enemies = getValidEnemies()
-    local newTarget = choosePlayer(enemies)
-    if newTarget then
-        lockedTarget = newTarget
-        getgenv().LockedTarget = newTarget
-        if lockButton then
-            lockButton.Image = "rbxassetid://6031098676"
-            lockButton.ImageColor3 = Color3.fromRGB(255, 200, 100)
-            lockButton.BackgroundColor3 = Color3.fromRGB(50, 35, 20)
-        end
-        if getgenv().LockNotifications then
-            library:notification({ text = "Locked onto " .. newTarget.DisplayName, duration = 2 })
-        end
-    else
-        if lockedTarget then
-            lockedTarget = nil
-            getgenv().LockedTarget = nil
-        end
-        if lockButton then
-            lockButton.Image = "rbxassetid://6031098676"
-            lockButton.ImageColor3 = Color3.fromRGB(255, 255, 100)
-            lockButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-        end
-    end
-end
-
-local function createLockButton()
-    if lockGui then
-        lockGui:Destroy()
-        lockGui = nil
-        lockButton = nil
-    end
-
-    lockGui = Instance.new("ScreenGui")
-    lockGui.Name = "LockButtonGui"
-    lockGui.Parent = CoreGui
-    lockGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    lockGui.ResetOnSpawn = false
-
-    lockButton = Instance.new("ImageButton")
-    lockButton.Name = "LockButton"
-    lockButton.Parent = lockGui
-    lockButton.Size = UDim2.new(0, 60, 0, 60)
-    lockButton.Position = UDim2.new(0.85, 0, 0.5, 0)
-    lockButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-    lockButton.BackgroundTransparency = 0.1
-    lockButton.Image = "rbxassetid://6031098676"
-    lockButton.ImageColor3 = Color3.fromRGB(200, 200, 255)
-    lockButton.Draggable = true
-
-    local corner = Instance.new("UICorner", lockButton)
-    corner.CornerRadius = UDim.new(0, 8)
-
-    local stroke = Instance.new("UIStroke", lockButton)
-    stroke.Color = Color3.fromRGB(100, 100, 200)
-    stroke.Thickness = 1.5
-    stroke.Transparency = 0.3
-
-    lockButton.MouseButton1Click:Connect(function()
-        if not getgenv().LockButtonEnabled then return end
-        lockActive = not lockActive
-        if lockActive then
-            updateLockedTarget()
+aimbotSection:keybind({
+    name = "Key",
+    flag = "combat_key",
+    default = Enum.KeyCode.E,
+    tooltip = "Key to lock on",
+    callback = function(newKey)
+        if newKey and type(newKey) == "userdata" and typeof(newKey) == "EnumItem" then
+            getgenv().AimbotKey = newKey.Name
         else
-            lockedTarget = nil
-            getgenv().LockedTarget = nil
-            getgenv().LockActive = false
-            lockButton.Image = "rbxassetid://6031098676"
-            lockButton.ImageColor3 = Color3.fromRGB(200, 200, 255)
-            lockButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-            stroke.Color = Color3.fromRGB(100, 100, 200)
-            stroke.Transparency = 0.3
-            if getgenv().LockNotifications then
-                library:notification({ text = "Unlocked", duration = 1 })
-            end
-        end
-    end)
-
-    return lockButton
-end
-
-local function setLockButtonVisible(visible)
-    if lockGui then
-        lockGui.Enabled = visible
-    end
-end
-
-RunService.RenderStepped:Connect(function()
-    if getgenv().LockButtonEnabled then
-        if lockActive then
-            updateLockedTarget()
-        else
-            if getgenv().LockActive then
-                getgenv().LockActive = false
-                getgenv().LockedTarget = nil
-            end
-        end
-    end
-end)
-
-local lastAutoShootTime = 0
-local autoShootCooldown = 0.15
-local function autoShoot()
-    if not getgenv().AutoShoot then return end
-    if not lockActive or not lockedTarget then return end
-
-    local char = LocalPlayer.Character
-    if not char then return end
-    local tool = char:FindFirstChildWhichIsA("Tool")
-    if not tool then return end
-
-    local now = tick()
-    if now - lastAutoShootTime < autoShootCooldown then return end
-    lastAutoShootTime = now
-
-    pcall(function()
-        tool:Activate()
-    end)
-end
-
-RunService.Heartbeat:Connect(autoShoot)
-
-do
-    local section = legit:section({ name = "camlock" })
-    section:toggle({
-        name = "enabled",
-        flag = "legit_enabled",
-        default = false,
-        tooltip = "master switch for aim assist",
-        callback = function(val) getgenv().Enabled = val end,
-    })
-
-    section:keybind({
-        name = "key",
-        flag = "legit_key",
-        default = Enum.KeyCode.E,
-        tooltip = "key to lock on",
-        callback = function(newKey)
-            if newKey and type(newKey) == "userdata" and typeof(newKey) == "EnumItem" then
-                getgenv().AimbotKey = newKey.Name
-            else
-                getgenv().AimbotKey = "E"
-            end
-        end,
-    })
-
-    section:dropdown({
-        name = "activation",
-        flag = "legit_aimbotactivation",
-        items = { "hold", "toggle" },
-        multi = false,
-        tooltip = "hold to enable or toggle on/off",
-        callback = function(val) getgenv().Activation = val end,
-    })
-
-
-    section:toggle({
-        name = "smoothness",
-        flag = "legit_smoothness",
-        callback = function(val) getgenv().SmoothnessEnabled = val end,
-    })
-
-    section:slider({
-        name = "smoothness X",
-        flag = "legit_smoothnessX",
-        default = 0.1,
-        min = 0,
-        max = 1,
-        interval = 0.001,
-        float = true,
-        suffix = "",
-        callback = function(val) getgenv().SmoothnessX = val end,
-    })
-
-    section:slider({
-        name = "smoothness Y",
-        flag = "legit_smoothnessY",
-        default = 0.1,
-        min = 0,
-        max = 1,
-        interval = 0.001,
-        float = true,
-        suffix = "",
-        callback = function(val) getgenv().SmoothnessY = val end,
-    })
-
-    section:dropdown({
-        name = "easingstyle",
-        flag = "legit_easingstyle",
-        items = { "exponential", "linear", "bounce", "sine", "cubic", "elastic", "quad", "quart", "back" },
-        multi = false,
-        tooltip = "smoothing curve for aim assist",
-        callback = function(val) getgenv().EasingStyle = val end,
-    })
-
-    section:dropdown({
-        name = "easing direction",
-        flag = "legit_easingdirection",
-        default = "out",
-        items = { "in", "out", "inout" },
-        callback = function(val) getgenv().EasingDirection = val end,
-    })
-
-section:textbox({
-    name = "jump offset",
-    label = "Jump Offset",
-    flag = "legit_jump_offset",
-    default = "",
-    placeholder = "jump offset",
-    tooltip = "vertical offset when target is jumping negative = aim higher",
-    callback = function(val)
-        local num = tonumber(val)
-        if num then
-            flags["legit_jump_offset"] = num
-            getgenv().JumpOffset = num
+            getgenv().AimbotKey = "E"
         end
     end,
 })
 
-section:textbox({
-    name = "fall offset",
-    label = "Fall Offset",
-    flag = "legit_fall_offset",
+aimbotSection:dropdown({
+    name = "Activation",
+    flag = "combat_activation",
+    items = { "Hold", "Toggle", "Rage", "Mobile" },
+    multi = false,
+    default = "Hold",
+    tooltip = "Activation mode: Hold = key held, Toggle = key press toggles, Rage = Locks on everyone, Mobile = touch based",
+    callback = function(val) getgenv().Activation = val end,
+})
+
+aimbotSection:toggle({
+    name = "Smoothness",
+    flag = "combat_smoothness",
+    default = false,
+    tooltip = "Enable disable smoothness",
+    callback = function(val) getgenv().SmoothnessEnabled = val end,
+})
+
+aimbotSection:textbox({
+    name = "Smoothness X",
+    flag = "combat_smoothness_x",
     default = "",
-    placeholder = "fall offset",
-    tooltip = "vertical offset when target is falling positive = aim lower",
+    placeholder = "Smoothness X",
+    tooltip = "Horizontal smoothness",
     callback = function(val)
         local num = tonumber(val)
-        if num then
-            flags["legit_fall_offset"] = num
-            getgenv().FallOffset = num
+        if num then getgenv().SmoothnessX = num else getgenv().SmoothnessX = 0.1 end
+    end,
+})
+
+aimbotSection:textbox({
+    name = "Smoothness Y",
+    flag = "combat_smoothness_y",
+    default = "",
+    placeholder = "Smoothness Y",
+    tooltip = "Vertical smoothness",
+    callback = function(val)
+        local num = tonumber(val)
+        if num then getgenv().SmoothnessY = num else getgenv().SmoothnessY = 0.1 end
+    end,
+})
+
+aimbotSection:dropdown({
+    name = "Easing Style",
+    flag = "combat_easing_style",
+    items = { "Exponential", "Linear", "Bounce", "Sine", "Cubic", "Elastic", "Quad", "Quart", "Back" },
+    multi = false,
+    default = "Linear",
+    tooltip = "Smoothing curve for aim assist",
+    callback = function(val) getgenv().EasingStyle = val end,
+})
+
+aimbotSection:dropdown({
+    name = "Easing Direction",
+    flag = "combat_easing_direction",
+    items = { "In", "Out", "Inout" },
+    multi = false,
+    default = "Out",
+    tooltip = "Direction of the easing curve",
+    callback = function(val) getgenv().EasingDirection = val end,
+})
+
+aimbotSection:textbox({
+    name = "Jump Offset",
+    flag = "combat_jump_offset",
+    default = "",
+    placeholder = "Jump Offset",
+    tooltip = "Vertical offset when target is jumping",
+    callback = function(val)
+        local num = tonumber(val)
+        if num then getgenv().JumpOffset = num else getgenv().JumpOffset = 0 end
+    end,
+})
+
+aimbotSection:textbox({
+    name = "Fall Offset",
+    flag = "combat_fall_offset",
+    default = "",
+    placeholder = "Fall Offset",
+    tooltip = "Vertical offset when target is falling",
+    callback = function(val)
+        local num = tonumber(val)
+        if num then getgenv().FallOffset = num else getgenv().FallOffset = 0 end
+    end,
+})
+
+aimbotSection:toggle({
+    name = "Prediction",
+    flag = "combat_prediction",
+    default = false,
+    tooltip = "Enable disable prediction",
+    callback = function(val) getgenv().Prediction = val end,
+})
+
+aimbotSection:textbox({
+    name = "Prediction X",
+    flag = "combat_prediction_x",
+    default = "",
+    placeholder = "Prediction X",
+    tooltip = "Horizontal prediction multiplier",
+    callback = function(val)
+        local num = tonumber(val)
+        if num then getgenv().PredictionX = num else getgenv().PredictionX = 0.115 end
+    end,
+})
+
+aimbotSection:textbox({
+    name = "Prediction Y",
+    flag = "combat_prediction_y",
+    default = "",
+    placeholder = "Prediction Y",
+    tooltip = "Vertical prediction multiplier",
+    callback = function(val)
+        local num = tonumber(val)
+        if num then getgenv().PredictionY = num else getgenv().PredictionY = 0.115 end
+    end,
+})
+
+aimbotSection:textbox({
+    name = "Prediction Z",
+    flag = "combat_prediction_z",
+    default = "",
+    placeholder = "Prediction Z",
+    tooltip = "Depth prediction multiplier",
+    callback = function(val)
+        local num = tonumber(val)
+        if num then getgenv().PredictionZ = num else getgenv().PredictionZ = 0.115 end
+    end,
+})
+
+aimbotSection:toggle({
+    name = "Auto Prediction",
+    flag = "combat_auto_prediction",
+    default = false,
+    tooltip = "Enable disable auto prediction",
+    callback = function(val) getgenv().AutoPrediction = val end,
+})
+
+aimbotSection:dropdown({
+    name = "Auto Prediction Mode",
+    flag = "combat_auto_prediction_mode",
+    items = { "Regular", "Ping based", "Advanced" },
+    multi = false,
+    default = "Regular",
+    tooltip = "Select auto prediction mode",
+    callback = function(val) getgenv().AutoPredictionMode = val end,
+})
+
+aimbotSection:toggle({
+    name = "Target Outline",
+    flag = "combat_target_outline",
+    default = false,
+    tooltip = "Camlock targets closest outline of enemy",
+    callback = function(val) getgenv().TargetOutline = val end,
+})
+
+aimbotSection:dropdown({
+    name = "Hitpart Selection",
+    flag = "combat_hitpart_selection",
+    items = { "Direct", "Closest", "Nearest" },
+    multi = false,
+    default = "Direct",
+    tooltip = "How the aimbot selects which part to aim at: Direct = fixed part, Closest = closest to crosshair, Nearest = closest in 3D space",
+    callback = function(val) getgenv().HitpartSelection = val end,
+})
+
+aimbotSection:dropdown({
+    name = "Target Priority",
+    flag = "combat_target_priority",
+    items = { "Closest", "Enemy look direction" },
+    multi = false,
+    default = "Closest",
+    tooltip = "How to select which enemy to target: Closest = nearest to you, Enemy look direction = prioritize enemies looking at you",
+    callback = function(val) getgenv().TargetPriority = val end,
+})
+
+aimbotSection:toggle({
+    name = "Wall Check",
+    flag = "combat_aimbot_wall_check",
+    default = false,
+    tooltip = "Require line of sight to target",
+    callback = function(val) getgenv().AimbotWallCheck = val end,
+})
+
+aimbotSection:toggle({
+    name = "Knocked Check",
+    flag = "combat_aimbot_knocked_check",
+    default = false,
+    tooltip = "Ignore knocked players",
+    callback = function(val) getgenv().AimbotKnockCheck = val end,
+})
+
+aimbotSection:toggle({
+    name = "Friend Check",
+    flag = "combat_aimbot_friend_check",
+    default = false,
+    tooltip = "Ignore friends",
+    callback = function(val) getgenv().AimbotFriendCheck = val end,
+})
+
+aimbotSection:toggle({
+    name = "Forcefield Check",
+    flag = "combat_aimbot_forcefield_check",
+    default = false,
+    tooltip = "Ignore enemies with forcefield",
+    callback = function(val) getgenv().AimbotForcefieldCheck = val end,
+})
+
+local triggerSection = combat:section({ name = "Triggerbot", side = "right" })
+
+triggerSection:toggle({
+    name = "Enable",
+    flag = "combat_triggerbot_enable",
+    default = false,
+    tooltip = "Enable triggerbot auto shoot when crosshair is over enemy",
+    callback = function(val) getgenv().TriggerbotEnabled = val end,
+})
+
+triggerSection:keybind({
+    name = "Key",
+    flag = "combat_triggerbot_key",
+    default = Enum.KeyCode.F,
+    tooltip = "Key to activate triggerbot",
+    callback = function(newKey)
+        if newKey and type(newKey) == "userdata" and typeof(newKey) == "EnumItem" then
+            getgenv().TriggerbotKey = newKey.Name
+        else
+            getgenv().TriggerbotKey = "F"
         end
     end,
 })
-    section:toggle({
-        name = "prediction",
-        flag = "legit_prediction",
-        callback = function(val) getgenv().Prediction = val end,
-    })
 
-    section:slider({
-        name = "horizental prediction",
-        flag = "legit_horizentalprediction",
-        default = 0.115,
-        min = 0,
-        max = 1,
-        interval = 0.0001,
-        float = true,
-        suffix = "",
-        callback = function(val)
-            flags["legit_horizentalprediction"] = val
-            getgenv().HorizontalPrediction = val
-        end,
-    })
+triggerSection:dropdown({
+    name = "Mode",
+    flag = "combat_triggerbot_mode",
+    items = { "Fov", "Silent", "Hitbox" },
+    multi = false,
+    default = "Fov",
+    tooltip = "Triggerbot mode: Fov = uses FOV circle, Silent = redirects bullets without moving camera, Hitbox = aims at specific hitbox",
+    callback = function(val) getgenv().TriggerbotMode = val end,
+})
 
-    section:slider({
-        name = "vertical prediction",
-        flag = "legit_verticalprediction",
-        default = 0.115,
-        min = 0,
-        max = 1,
-        interval = 0.0001,
-        float = true,
-        suffix = "",
-        callback = function(val)
-            flags["legit_verticalprediction"] = val
-            getgenv().VerticalPrediction = val
-        end,
-    })
+triggerSection:textbox({
+    name = "Delay",
+    flag = "combat_triggerbot_delay",
+    default = "",
+    placeholder = "Trigger Delay",
+    tooltip = "Reaction time in milliseconds",
+    callback = function(val)
+        local num = tonumber(val)
+        if num then getgenv().TriggerbotDelay = num else getgenv().TriggerbotDelay = 120 end
+    end,
+})
 
-    section:toggle({
-        name = "auto prediction",
-        flag = "legit_autoprediction",
-        callback = function(val) getgenv().AutoPrediction = val end,
-    })
+triggerSection:toggle({
+    name = "Prediction",
+    flag = "combat_triggerbot_prediction",
+    default = false,
+    tooltip = "Enable prediction for triggerbot",
+    callback = function(val) getgenv().TriggerbotPrediction = val end,
+})
 
-    section:dropdown({
-        name = "target priority",
-        flag = "legit_targetpriority",
-        items = { "closest", "enemy look direction" },
-        multi = false,
-        tooltip = "which enemy to prioritize",
-        callback = function(val) getgenv().TargetPriority = val end,
-    })
+triggerSection:textbox({
+    name = "Prediction X",
+    flag = "combat_triggerbot_prediction_x",
+    default = "",
+    placeholder = "Prediction X",
+    tooltip = "Horizontal prediction multiplier for triggerbot",
+    callback = function(val)
+        local num = tonumber(val)
+        if num then getgenv().TriggerbotPredX = num else getgenv().TriggerbotPredX = 0.115 end
+    end,
+})
 
-    section:slider({
-        name = "enemy switching delay",
-        suffix = "ms",
-        flag = "legit_enemyswitchingdelay",
-        default = 500,
-        min = 0,
-        max = 2000,
-        tooltip = "time before switching to a new target",
-        callback = function(val) getgenv().EnemySwitchingDelay = val end,
-    })
+triggerSection:textbox({
+    name = "Prediction Y",
+    flag = "combat_triggerbot_prediction_y",
+    default = "",
+    placeholder = "Prediction Y",
+    tooltip = "Vertical prediction multiplier for triggerbot",
+    callback = function(val)
+        local num = tonumber(val)
+        if num then getgenv().TriggerbotPredY = num else getgenv().TriggerbotPredY = 0.115 end
+    end,
+})
 
-    section:toggle({
-        name = "target movement",
-        flag = "legit_targetmovement",
-        default = false,
-        tooltip = "predict target movement",
-        callback = function(val) getgenv().TargetMovement = val end,
-    })
+triggerSection:toggle({
+    name = "Knocked Check",
+    flag = "combat_knocked_check",
+    default = false,
+    tooltip = "Ignore knocked players",
+    callback = function(val) getgenv().KnockCheck = val end,
+})
 
-    section:slider({
-        name = "target prediction inaccuracy",
-        suffix = "%",
-        flag = "legit_targetpredictioninaccuracy",
-        default = 90,
-        min = 0,
-        max = 100,
-        tooltip = "inaccuracy of movement prediction",
-        callback = function(val) getgenv().TargetPredictionInaccuracy = val end,
-    })
+triggerSection:toggle({
+    name = "Wall Check",
+    flag = "combat_wall_check",
+    default = false,
+    tooltip = "Require line of sight to target",
+    callback = function(val) getgenv().WallCheck = val end,
+})
 
-    section:toggle({
-        name = "mobile thumb movement",
-        flag = "legit_mobilethumbmovement",
-        default = false,
-        tooltip = "only aim when thumb is moving",
-        callback = function(val) getgenv().MobileThumbMovement = val end,
-    })
+triggerSection:toggle({
+    name = "Tool Check",
+    flag = "combat_tool_check",
+    default = false,
+    tooltip = "Only trigger when holding a weapon",
+    callback = function(val) getgenv().ToolCheck = val end,
+})
 
-    section:toggle({
-        name = "mobile nearing enemy",
-        flag = "legit_mobilenearingenemy",
-        default = false,
-        tooltip = "only help if thumb is swiping towards enemy",
-        callback = function(val) getgenv().MobileNearingEnemy = val end,
-    })
+triggerSection:toggle({
+    name = "Friend Check",
+    flag = "combat_friend_check",
+    default = false,
+    tooltip = "Ignore friends",
+    callback = function(val) getgenv().FriendCheck = val end,
+})
 
-    local section_silent = legit:section({ name = "silent aim", side = "right" })
-    section_silent:toggle({
-        name = "silent aim",
-        flag = "legit_silentaim",
-        default = false,
-        tooltip = "redirect bullets automatically",
-        callback = function(val) getgenv().SilentAim = val end,
-    })
+triggerSection:toggle({
+    name = "Forcefield Check",
+    flag = "combat_forcefield_check",
+    default = false,
+    tooltip = "Ignore enemies with forcefield",
+    callback = function(val) getgenv().ForcefieldCheck = val end,
+})
 
-    section_silent:slider({
-        name = "hit chance",
-        suffix = "%",
-        flag = "legit_hitchance",
-        default = 85,
-        min = 0,
-        max = 100,
-        tooltip = "chance to redirect a bullet",
-        callback = function(val) getgenv().HitChance = val end,
-    })
+local silentSection = combat:section({ name = "Silent Aim", side = "right" })
 
-    section_silent:slider({
-        name = "anti curve",
-        suffix = "°",
-        flag = "legit_anticurve",
-        default = 8,
-        min = 0,
-        max = 90,
-        tooltip = "prevent curving bullets around corners",
-        callback = function(val) getgenv().AntiCurve = val end,
-    })
+silentSection:toggle({
+    name = "Enable",
+    flag = "combat_silent_enable",
+    default = false,
+    tooltip = "Enable silent aim redirects bullets without moving your camera",
+    callback = function(val) getgenv().SilentAimEnabled = val end,
+})
 
-    section_silent:toggle({
-        name = "prediction",
-        flag = "legit_silent_prediction",
-        default = false,
-        callback = function(val) getgenv().SilentAimPrediction = val end,
-    })
-
-    section_silent:slider({
-        name = "horizental",
-        flag = "legit_silent_horizentalprediction",
-        default = 0.145,
-        min = 0,
-        max = 1,
-        interval = 0.0001,
-        float = true,
-        suffix = "",
-        callback = function(val)
-            flags["legit_silent_horizentalprediction"] = val
-            getgenv().SilentAimHorizontalPred = val
-        end,
-    })
-
-    section_silent:slider({
-        name = "vertical",
-        flag = "legit_silent_verticalprediction",
-        default = 0.145,
-        min = 0,
-        max = 1,
-        interval = 0.0001,
-        float = true,
-        suffix = "",
-        callback = function(val)
-            flags["legit_silent_verticalprediction"] = val
-            getgenv().SilentAimVerticalPred = val
-        end,
-    })
-
-    section_silent:toggle({
-        name = "auto prediction",
-        flag = "legit_silent_autoprediction",
-        default = false,
-        callback = function(val) getgenv().SilentAimAutoPred = val end,
-    })
-
-    section_silent:dropdown({
-        name = "aim method",
-        flag = "legit_silentaim_aimmethod",
-        items = {
-            "Aim Bone",
-            "closest part",
-            "nearest point"
-        },
-        multi = false,
-        default = "closest part",
-        tooltip = "pick the aim point on the enemy",
-        callback = function(val) getgenv().SilentAimAimMethod = val end,
-    })
-
-    section_silent:dropdown({
-        name = "lock method",
-        flag = "legitlocking_method",
-        items = { "index", "namecall" },
-        multi = false,
-        default = "namecall",
-        callback = function(val)
-            getgenv().LockMethod = val
-        end,
-    })
-
-    section_silent:toggle({
-        name = "anti aimview",
-        flag = "legit_antiaimview",
-        default = true,
-        tooltip = "use real mouse movement",
-        callback = function(val) getgenv().SilentAimAntiAimView = val end,
-    })
-
-    section_silent:toggle({
-        name = "anti ground shot",
-        flag = "legit_antigroundshot",
-        default = false,
-        tooltip = "prevent shooting at ground",
-        callback = function(val) getgenv().AntiGroundShot = val end,
-    })
-
-    section_silent:toggle({
-        name = "instant hit [not coded]",
-        flag = "legit_silentinstanthit",
-        default = false,
-        tooltip = "instant hit (may be detected)",
-        callback = function(val) getgenv().SilentAimInstantHit = val end,
-    })
-
-    local section_trigger = legit:section({ name = "triggerbot", side = "right" })
-    section_trigger:toggle({
-        name = "enabled",
-        flag = "legit_triggerbot",
-        default = false,
-        tooltip = "auto‑shoot when crosshair is over enemy",
-        callback = function(val) getgenv().TriggerbotEnabled = val end,
-    })
-
-    section_trigger:slider({
-        name = "reaction time",
-        suffix = "ms",
-        flag = "legit_triggerbotspeed",
-        default = 120,
-        min = 0,
-        max = 400,
-        custom = { ["0"] = "off" },
-        tooltip = "delay before shooting (0 = off)",
-        callback = function(val) getgenv().TriggerbotReactionTime = val end,
-    })
-
-    section_trigger:dropdown({
-        name = "triggerbot hitboxes",
-        flag = "legit_triggerbotpoints",
-        items = { "head", "body", "arms", "legs" },
-        multi = true,
-        tooltip = "which hitboxes to aim at",
-        callback = function(val) getgenv().TriggerbotHitboxes = val end,
-    })
-
-    section_trigger:toggle({
-        name = "magnet triggerbot",
-        flag = "legit_magnet",
-        default = false,
-        tooltip = "enable magnet aim assist on triggerbot key",
-        callback = function(val) getgenv().MagnetEnabled = val end,
-    })
-
-    section_trigger:slider({
-        name = "magnet fov",
-        suffix = "°",
-        flag = "legit_magnetfov",
-        default = 80,
-        min = 0,
-        max = 180,
-        tooltip = "FOV for magnet",
-        callback = function(val) getgenv().MagnetFOV = val end,
-    })
-
-    section_trigger:slider({
-        name = "magnet speed",
-        suffix = "%",
-        flag = "legit_magnetsmoothing",
-        default = 10,
-        min = 0,
-        max = 100,
-        tooltip = "smoothness for magnet",
-        callback = function(val) getgenv().MagnetSpeed = val end,
-    })
-
-    section_trigger:dropdown({
-        name = "magnet priority",
-        flag = "legit_magnetnpriority",
-        items = { "closest", "head", "body" },
-        multi = false,
-        tooltip = "priority for magnet",
-        callback = function(val) getgenv().MagnetPriority = val end,
-    })
-
-    local section_checks = legit:section({ name = "checks", side = "left" })
-    section_checks:toggle({
-        name = "wall check",
-        flag = "wall_check",
-        default = false,
-        callback = function(val) getgenv().WallCheck = val end,
-    })
-    section_checks:toggle({
-        name = "friend check",
-        flag = "friend_check",
-        default = false,
-        callback = function(val) getgenv().FriendCheck = val end,
-    })
-    section_checks:toggle({
-        name = "knock check",
-        flag = "knock_check",
-        default = false,
-        callback = function(val) getgenv().KnockCheck = val end,
-    })
-    section_checks:toggle({
-        name = "forcefield check",
-        flag = "forcefield_check",
-        default = false,
-        callback = function(val) getgenv().ForcefieldCheck = val end,
-    })
-    section_checks:toggle({
-        name = "melee check",
-        flag = "melee_check",
-        default = false,
-        callback = function(val) getgenv().MeleeCheck = val end,
-    })
-    section_checks:toggle({
-        name = "crew check",
-        flag = "crew_check",
-        default = false,
-        callback = function(val) getgenv().CrewCheck = val end,
-    })
-end
-
-do
-    local movement = rage:section({ name = "movement", side = "left" })
-    movement:toggle({
-        name = "walkspeed",
-        flag = "rage_movement_speed_toggle",
-        default = false,
-        tooltip = "Enable walkspeed modification (set to 50 by default)",
-        callback = function(val) 
-            getgenv().ModifySpeed = val 
-        end,
-    })
-
-    movement:toggle({
-        name = "noclip",
-        flag = "rage_movement_noclip",
-        default = false,
-        callback = function(val) getgenv().Noclip = val end,
-    })
-    movement:toggle({
-        name = "infinite jump",
-        flag = "rage_movement_infinitejump",
-        default = false,
-        callback = function(val) getgenv().InfiniteJump = val end,
-    })
-    movement:toggle({
-        name = "auto armor",
-        flag = "rage_autoarmor",
-        default = false,
-        callback = function(val) getgenv().AutoArmor = val end,
-    })
-    movement:slider({
-        name = "auto armor cooldown",
-        suffix = "s",
-        flag = "rage_autoarmor_cooldown",
-        default = 5,
-        min = 0,
-        max = 30,
-        interval = 0.5,
-        callback = function(val) getgenv().AutoArmorCooldown = val end,
-    })
-    movement:slider({
-        name = "auto armor proximity",
-        suffix = "studs",
-        flag = "rage_autoarmor_proximity",
-        default = 20,
-        min = 0,
-        max = 100,
-        interval = 1,
-        callback = function(val) getgenv().AutoArmorProximity = val end,
-    })
-
-    local ragemode = rage:section({ name = "rage mode", side = "left" })
-    ragemode:toggle({
-        name = "enabled",
-        flag = "rage_mode_enabled",
-        default = false,
-        callback = function(val) getgenv().RageModeEnabled = val end,
-    })
-    ragemode:slider({
-        name = "lock radius",
-        suffix = "studs",
-        flag = "rage_mode_radius",
-        default = 50,
-        min = 10,
-        max = 300,
-        callback = function(val) getgenv().RageLockRadius = val end,
-    })
-    ragemode:toggle({
-        name = "custom fov",
-        flag = "rage_mode_customfov",
-        default = false,
-        callback = function(val) getgenv().RageCustomFOV = val end,
-    })
-    ragemode:slider({
-        name = "fov",
-        suffix = "°",
-        flag = "rage_mode_fov",
-        default = 30,
-        min = 0,
-        max = 360,
-        callback = function(val) getgenv().RageFOV = val end,
-    })
-    ragemode:toggle({
-        name = "visible only",
-        flag = "rage_mode_visibleonly",
-        default = false,
-        callback = function(val) getgenv().RageVisibleOnly = val end,
-    })
-    ragemode:toggle({
-        name = "auto resolver",
-        flag = "rage_autoresolver",
-        default = false,
-        tooltip = "automatically resolve velocity manipulation",
-        callback = function(val) getgenv().RageAutoResolver = val end,
-    })
-
-    local antiaim = rage:section({ name = "Anti Aim", side = "right" })
-    antiaim:toggle({
-        name = "Enabled",
-        flag = "rage_antiaim_enabled",
-        default = false,
-        tooltip = "Enable Anti Aim",
-        callback = function(val) getgenv().AntiAimEnabled = val end,
-    })
-    antiaim:dropdown({
-        name = "anti aim type",
-        flag = "rage_antiaim_type",
-        items = { "up", "down", "back", "zero aim" },
-        default = "",
-        multi = false,
-        tooltip = "Anti Aim movement",
-        callback = function(val) getgenv().AntiAimMode = val end,
-    })
-    
-    antiaim:toggle({
-        name = "Visualize",
-        flag = "rage_antiaim_visualize",
-        default = false,
-        tooltip = "Show a ghost of your anti aim position",
-        callback = function(val) getgenv().AntiAimVisualize = val end,
-    })
-    
-    antiaim:toggle({
-        name = "legit anti aim",
-        flag = "rage_antiaim_legit",
-        default = false,
-        callback = function(val) getgenv().LegitAntiAim = val end,
-    })
-
-    local lockSection = rage:section({ name = "Lock Button", side = "right" })
-    lockSection:toggle({
-        name = "Enable Floating Button",
-        flag = "lock_button_enabled",
-        default = false,
-        tooltip = "Show/hide the floating lock button",
-        callback = function(val)
-            getgenv().LockButtonEnabled = val
-            if val then
-                if not lockGui then
-                    createLockButton()
-                end
-                setLockButtonVisible(true)
-            else
-                setLockButtonVisible(false)
-            end
+silentSection:keybind({
+    name = "Key",
+    flag = "combat_silent_key",
+    default = Enum.KeyCode.G,
+    tooltip = "Key to toggle silent aim on off",
+    callback = function(newKey)
+        if newKey and type(newKey) == "userdata" and typeof(newKey) == "EnumItem" then
+            getgenv().SilentAimKey = newKey.Name
+        else
+            getgenv().SilentAimKey = "G"
         end
-    })
-    lockSection:toggle({
-        name = "Auto Shoot",
-        flag = "auto_shoot",
-        default = false,
-        tooltip = "Automatically fire your weapon when locked onto a target",
-        callback = function(val)
-            getgenv().AutoShoot = val
+    end,
+})
+
+silentSection:dropdown({
+    name = "Aim Method",
+    flag = "combat_silent_method",
+    items = { "Direct", "Closest Part", "Nearest Point" },
+    multi = false,
+    default = "Direct",
+    tooltip = "How to select the aim point: Direct = fixed hitbox, Closest Part = nearest to crosshair, Nearest Point = nearest in 3D",
+    callback = function(val) getgenv().SilentAimMethod = val end,
+})
+
+silentSection:textbox({
+    name = "Hit Chance",
+    flag = "combat_silent_hitchance",
+    default = "",
+    placeholder = "Silent aim Hitchance",
+    tooltip = "Chance to hit the selected target",
+    callback = function(val)
+        local num = tonumber(val)
+        if num then getgenv().SilentAimHitChance = num else getgenv().SilentAimHitChance = 85 end
+    end,
+})
+
+silentSection:toggle({
+    name = "Anti Aimviewer",
+    flag = "combat_silent_anti_aimview",
+    default = false,
+    tooltip = "Prevents the aimbot from adjusting your camera view (keep your aim still)",
+    callback = function(val) getgenv().SilentAimAntiAimView = val end,
+})
+
+silentSection:toggle({
+    name = "Prediction",
+    flag = "combat_silent_prediction",
+    default = false,
+    tooltip = "Enable prediction for silent aim",
+    callback = function(val) getgenv().SilentAimPrediction = val end,
+})
+
+silentSection:textbox({
+    name = "Prediction X",
+    flag = "combat_silent_prediction_x",
+    default = "",
+    placeholder = "Prediction X",
+    tooltip = "Horizontal prediction multiplier for silent aim",
+    callback = function(val)
+        local num = tonumber(val)
+        if num then getgenv().SilentAimPredX = num else getgenv().SilentAimPredX = 0.115 end
+    end,
+})
+
+silentSection:textbox({
+    name = "Prediction Y",
+    flag = "combat_silent_prediction_y",
+    default = "",
+    placeholder = "Prediction Y",
+    tooltip = "Vertical prediction multiplier for silent aim",
+    callback = function(val)
+        local num = tonumber(val)
+        if num then getgenv().SilentAimPredY = num else getgenv().SilentAimPredY = 0.115 end
+    end,
+})
+
+silentSection:textbox({
+    name = "Prediction Z",
+    flag = "combat_silent_prediction_z",
+    default = "",
+    placeholder = "Prediction Z",
+    tooltip = "Depth prediction multiplier for silent aim",
+    callback = function(val)
+        local num = tonumber(val)
+        if num then getgenv().SilentAimPredZ = num else getgenv().SilentAimPredZ = 0.115 end
+    end,
+})
+
+silentSection:toggle({
+    name = "Auto Prediction",
+    flag = "combat_silent_auto_prediction",
+    default = false,
+    tooltip = "Enable auto prediction for silent aim",
+    callback = function(val) getgenv().SilentAimAutoPrediction = val end,
+})
+
+silentSection:dropdown({
+    name = "Auto Prediction Mode",
+    flag = "combat_silent_auto_prediction_mode",
+    items = { "Regular", "Ping based", "Advanced" },
+    multi = false,
+    default = "Regular",
+    tooltip = "Select auto prediction mode for silent aim",
+    callback = function(val) getgenv().SilentAimAutoPredictionMode = val end,
+})
+
+silentSection:toggle({
+    name = "Anti Ground Shot",
+    flag = "combat_silent_antiground",
+    default = false,
+    tooltip = "Prevent shooting at the ground",
+    callback = function(val) getgenv().SilentAimAntiGround = val end,
+})
+
+silentSection:textbox({
+    name = "Anti Curve",
+    flag = "combat_silent_anticurve",
+    default = "",
+    placeholder = "Anti Curve",
+    tooltip = "Prevent bullets from curving around corners",
+    callback = function(val)
+        local num = tonumber(val)
+        if num then getgenv().SilentAimAntiCurve = num else getgenv().SilentAimAntiCurve = 8 end
+    end,
+})
+
+silentSection:toggle({
+    name = "Wall Check",
+    flag = "combat_silent_wall_check",
+    default = false,
+    tooltip = "Require line of sight to target",
+    callback = function(val) getgenv().SilentAimWallCheck = val end,
+})
+
+silentSection:toggle({
+    name = "Knocked Check",
+    flag = "combat_silent_knocked_check",
+    default = false,
+    tooltip = "Ignore knocked players",
+    callback = function(val) getgenv().SilentAimKnockCheck = val end,
+})
+
+silentSection:toggle({
+    name = "Friend Check",
+    flag = "combat_silent_friend_check",
+    default = false,
+    tooltip = "Ignore friends",
+    callback = function(val) getgenv().SilentAimFriendCheck = val end,
+})
+
+silentSection:toggle({
+    name = "Forcefield Check",
+    flag = "combat_silent_forcefield_check",
+    default = false,
+    tooltip = "Ignore enemies with forcefield",
+    callback = function(val) getgenv().SilentAimForcefieldCheck = val end,
+})
+
+silentSection:textbox({
+    name = "Enemy Switching Delay",
+    flag = "combat_silent_switching_delay",
+    default = "",
+    placeholder = "Enemy switching delay",
+    tooltip = "Time before switching to a new target",
+    callback = function(val)
+        local num = tonumber(val)
+        if num then getgenv().SilentAimEnemySwitchDelay = num else getgenv().SilentAimEnemySwitchDelay = nil end
+    end,
+})
+
+local espSection = visuals:section({ name = "ESP" })
+
+espSection:toggle({
+    name = "Enemy ESP",
+    flag = "visuals_enemy_esp",
+    default = false,
+    tooltip = "Master switch for enemy ESP",
+    callback = function(val) getgenv().EnemyESP = val end,
+})
+
+espSection:toggle({
+    name = "Box 2D",
+    flag = "visuals_box_2d",
+    default = false,
+    tooltip = "Draw a 2D box around players",
+    callback = function(val) getgenv().Box2D = val end,
+})
+
+espSection:toggle({
+    name = "Box 3D",
+    flag = "visuals_box_3d",
+    default = false,
+    tooltip = "Draw a 3D box around players",
+    callback = function(val) getgenv().Box3D = val end,
+})
+
+espSection:toggle({
+    name = "Name",
+    flag = "visuals_name",
+    default = false,
+    tooltip = "Show player names",
+    callback = function(val) getgenv().NameESP = val end,
+})
+
+espSection:toggle({
+    name = "Distance",
+    flag = "visuals_distance",
+    default = false,
+    tooltip = "Show distance to players",
+    callback = function(val) getgenv().DistanceESP = val end,
+})
+
+espSection:toggle({
+    name = "Health Bar",
+    flag = "visuals_healthbar",
+    default = false,
+    tooltip = "Show health bars above players",
+    callback = function(val) getgenv().HealthBar = val end,
+})
+
+espSection:toggle({
+    name = "Tracers",
+    flag = "visuals_tracers",
+    default = false,
+    tooltip = "Draw lines from your position to players",
+    callback = function(val) getgenv().Tracers = val end,
+})
+
+espSection:toggle({
+    name = "Targets",
+    flag = "visuals_targets",
+    default = false,
+    tooltip = "shows enemies name you are fighting in red",
+    callback = function(val) getgenv().Targets = val end,
+})
+
+local worldSection = visuals:section({ name = "World", side = "right" })
+
+worldSection:toggle({
+    name = "Rain",
+    flag = "visuals_rain",
+    default = false,
+    tooltip = "Enable rain effect",
+    callback = function(val) getgenv().Rain = val end,
+})
+
+worldSection:toggle({
+    name = "Snow",
+    flag = "visuals_snow",
+    default = false,
+    tooltip = "Enable snow effect",
+    callback = function(val) getgenv().Snow = val end,
+})
+
+worldSection:toggle({
+    name = "Trails",
+    flag = "visuals_trails",
+    default = false,
+    tooltip = "Show trails behind players",
+    callback = function(val) getgenv().Trails = val end,
+})
+
+local gunSection = weapons:section({ name = "Gun Config" })
+
+gunSection:toggle({
+    name = "Enable",
+    flag = "weapons_gun_config_enable",
+    default = false,
+    tooltip = "Enable per‑weapon hit chance settings",
+    callback = function(val) getgenv().GunConfigEnabled = val end,
+})
+
+gunSection:textbox({
+    name = "Double Barrel Hit Chance",
+    flag = "weapons_hitchance_doublebarrel",
+    default = "",
+    placeholder = "Double Barrel HitChance",
+    tooltip = "Hit chance for Double Barrel",
+    callback = function(val)
+        local num = tonumber(val)
+        if num then getgenv().DoubleBarrelHitChance = num else getgenv().DoubleBarrelHitChance = nil end
+    end,
+})
+
+gunSection:textbox({
+    name = "Revolver Hit Chance",
+    flag = "weapons_hitchance_revolver",
+    default = "",
+    placeholder = "Revolver HitChance",
+    tooltip = "Hit chance for Revolver",
+    callback = function(val)
+        local num = tonumber(val)
+        if num then getgenv().RevolverHitChance = num else getgenv().RevolverHitChance = nil end
+    end,
+})
+
+gunSection:textbox({
+    name = "Shotgun Hit Chance",
+    flag = "weapons_hitchance_shotgun",
+    default = "",
+    placeholder = "Shotgun HitChance",
+    tooltip = "Hit chance for Shotgun",
+    callback = function(val)
+        local num = tonumber(val)
+        if num then getgenv().ShotgunHitChance = num else getgenv().ShotgunHitChance = nil end
+    end,
+})
+
+gunSection:textbox({
+    name = "Tactical Shotgun Hit Chance",
+    flag = "weapons_hitchance_tacticalshotgun",
+    default = "",
+    placeholder = "Tactical Shotgun HitChance",
+    tooltip = "Hit chance for Tactical Shotgun",
+    callback = function(val)
+        local num = tonumber(val)
+        if num then getgenv().TacticalShotgunHitChance = num else getgenv().TacticalShotgunHitChance = nil end
+    end,
+})
+
+gunSection:textbox({
+    name = "USP Hit Chance",
+    flag = "weapons_hitchance_usp",
+    default = "",
+    placeholder = "USP HitChance",
+    tooltip = "Hit chance for USP",
+    callback = function(val)
+        local num = tonumber(val)
+        if num then getgenv().USPHitChance = num else getgenv().USPHitChance = nil end
+    end,
+})
+
+gunSection:textbox({
+    name = "Silencer Hit Chance",
+    flag = "weapons_hitchance_silencer",
+    default = "",
+    placeholder = "Silencer HitChance",
+    tooltip = "Hit chance for Silencer",
+    callback = function(val)
+        local num = tonumber(val)
+        if num then getgenv().SilencerHitChance = num else getgenv().SilencerHitChance = nil end
+    end,
+})
+
+local featureSection = weapons:section({ name = "Weapon Features", side = "right" })
+
+featureSection:toggle({
+    name = "Prefire",
+    flag = "weapons_prefire",
+    default = false,
+    tooltip = "Enable prefire: automatically fire when enemy is about to peek",
+    callback = function(val) getgenv().Prefire = val end,
+})
+
+featureSection:toggle({
+    name = "Auto Shoot",
+    flag = "weapons_autoshoot",
+    default = false,
+    tooltip = "Automatically shoot when locked onto a target",
+    callback = function(val) getgenv().AutoShoot = val end,
+})
+
+featureSection:toggle({
+    name = "Auto Reload",
+    flag = "weapons_autoreload",
+    default = false,
+    tooltip = "Automatically reload when magazine is empty",
+    callback = function(val) getgenv().AutoReload = val end,
+})
+
+featureSection:toggle({
+    name = "No Spread",
+    flag = "weapons_nospread",
+    default = false,
+    tooltip = "Remove bullet spread (makes shots perfectly accurate)",
+    callback = function(val) getgenv().NoSpread = val end,
+})
+
+local panicSection = misc:section({ name = "Panic", side = "left" })
+
+panicSection:toggle({
+    name = "Panic Mode",
+    flag = "misc_panic",
+    default = false,
+    tooltip = "Enable panic mode keybind",
+    callback = function(val) getgenv().PanicMode = val end,
+})
+
+panicSection:keybind({
+    name = "Panic Key",
+    flag = "misc_panic_key",
+    default = Enum.KeyCode.P,
+    tooltip = "Key to trigger panic mode",
+    callback = function(newKey)
+        if newKey and type(newKey) == "userdata" and typeof(newKey) == "EnumItem" then
+            getgenv().PanicKey = newKey
+        else
+            getgenv().PanicKey = Enum.KeyCode.P
         end
-    })
-    lockSection:toggle({
-        name = "Show Lock Notifications",
-        flag = "lock_notifications",
-        default = true,
-        tooltip = "Show notifications when locking/unlocking",
-        callback = function(val)
-            getgenv().LockNotifications = val
+    end,
+})
+
+panicSection:dropdown({
+    name = "Panic Action",
+    flag = "misc_panic_action",
+    items = { "Disable all", "Unload" },
+    multi = false,
+    default = "Disable all",
+    tooltip = "Action to perform when panic key is pressed",
+    callback = function(val) getgenv().PanicAction = val end,
+})
+
+local autoBuySection = misc:section({ name = "Auto Buy", side = "left" })
+
+autoBuySection:toggle({
+    name = "Auto Buy Armor",
+    flag = "misc_autobuy_armor",
+    default = false,
+    tooltip = "Automatically buy armor when near a buy pad",
+    callback = function(val) getgenv().AutoBuyArmor = val end,
+})
+
+autoBuySection:toggle({
+    name = "Auto Buy Food",
+    flag = "misc_autobuy_food",
+    default = false,
+    tooltip = "Automatically buy selected food items when near a buy pad",
+    callback = function(val) getgenv().AutoBuyFood = val end,
+})
+
+autoBuySection:dropdown({
+    name = "Food to Buy",
+    flag = "misc_autobuy_food_list",
+    items = {
+        "Burger",
+        "Chicken",
+        "Donut",
+        "Pizza",
+        "Popcorn",
+        "Taco",
+        "Sauce",
+    },
+    multi = true,
+    default = {},
+    tooltip = "Select which food items to buy automatically",
+    callback = function(val)
+        getgenv().AutoBuyFoodList = val
+    end,
+})
+
+autoBuySection:toggle({
+    name = "Auto Buy Weapons",
+    flag = "misc_autobuy_weapons",
+    default = false,
+    tooltip = "Automatically buy selected weapons when near a buy pad",
+    callback = function(val) getgenv().AutoBuyWeapons = val end,
+})
+
+autoBuySection:dropdown({
+    name = "Weapons to Buy",
+    flag = "misc_autobuy_weapons_list",
+    items = {
+        "USP",
+        "Shotgun",
+        "Tactical Shotgun",
+        "Silencer",
+    },
+    multi = true,
+    default = {},
+    tooltip = "Select which weapons to buy automatically",
+    callback = function(val)
+        getgenv().AutoBuyWeaponsList = val
+    end,
+})
+
+autoBuySection:slider({
+    name = "Buy Cooldown",
+    flag = "misc_autobuy_cooldown",
+    default = 5,
+    min = 0,
+    max = 30,
+    interval = 0.5,
+    suffix = "s",
+    tooltip = "Time between buy attempts",
+    callback = function(val) getgenv().AutoBuyCooldown = val end,
+})
+
+autoBuySection:slider({
+    name = "Buy Proximity",
+    flag = "misc_autobuy_proximity",
+    default = 20,
+    min = 0,
+    max = 100,
+    interval = 1,
+    suffix = "studs",
+    tooltip = "Max distance to a buyable item",
+    callback = function(val) getgenv().AutoBuyProximity = val end,
+})
+
+local antiModSection = misc:section({ name = "Anti Mod", side = "right" })
+
+antiModSection:toggle({
+    name = "Anti Mod",
+    flag = "misc_antimod",
+    default = false,
+    tooltip = "Enable anti‑mod detection",
+    callback = function(val) getgenv().AntiModEnabled = val end,
+})
+
+antiModSection:toggle({
+    name = "Check on Load",
+    flag = "misc_antimod_checkonload",
+    default = true,
+    tooltip = "Check for staff when the script loads",
+    callback = function(val) getgenv().CheckModsOnLoad = val end,
+})
+
+antiModSection:toggle({
+    name = "Group Check",
+    flag = "misc_antimod_groupcheck",
+    default = false,
+    tooltip = "Check if mods are in a specific group",
+    callback = function(val) getgenv().GroupCheck = val end,
+})
+
+antiModSection:dropdown({
+    name = "Mod Action",
+    flag = "misc_antimod_action",
+    items = { "Notify", "Crash", "Server hop", "Kick" },
+    multi = false,
+    default = "Notify",
+    tooltip = "Action to take when a mod is detected",
+    callback = function(val) getgenv().ModAction = val end,
+})
+
+local resolverSection = misc:section({ name = "Resolver", side = "right" })
+
+resolverSection:toggle({
+    name = "Resolver",
+    flag = "misc_resolver_enabled",
+    default = false,
+    tooltip = "Enable resolver to fix anti‑aim",
+    callback = function(val) getgenv().ResolverEnabled = val end,
+})
+
+resolverSection:toggle({
+    name = "Auto Resolve",
+    flag = "misc_resolver_auto",
+    default = false,
+    tooltip = "Automatically resolve enemy anti‑aim",
+    callback = function(val) getgenv().AutoResolver = val end,
+})
+
+resolverSection:keybind({
+    name = "Resolver Key",
+    flag = "misc_resolver_key",
+    default = Enum.KeyCode.R,
+    tooltip = "Key to manually trigger resolver",
+    callback = function(newKey)
+        if newKey and type(newKey) == "userdata" and typeof(newKey) == "EnumItem" then
+            getgenv().ResolverKey = newKey
+        else
+            getgenv().ResolverKey = Enum.KeyCode.R
         end
-    })
-    if getgenv().LockButtonEnabled then
-        createLockButton()
-        setLockButtonVisible(true)
-    end
-    if getgenv().LockNotifications == nil then
-        getgenv().LockNotifications = true
-    end
-    if getgenv().AutoShoot == nil then
-        getgenv().AutoShoot = false
-    end
-end
+    end,
+})
 
-do
-    local camera = visuals:section({ name = "camera", side = "left" })
-    camera:toggle({ name = "toggle fov", flag = "toggle_fov", default = false,
-        callback = function(val) getgenv().ToggleFOV = val end })
-    camera:slider({ name = "camera fov", min = 0, max = 120, default = 90, interval = 1,
-        callback = function(val) getgenv().CameraFOV = val end })
-    camera:slider({ name = "horizontal aspect ratio", min = 0, max = 200, default = 100, interval = 1,
-        callback = function(val) getgenv().HorizontalAspectRatio = val end })
-    camera:slider({ name = "vertical aspect ratio", min = 0, max = 200, default = 100, interval = 1,
-        callback = function(val) getgenv().VerticalAspectRatio = val end })
-    camera:toggle({ name = "remove camera bob", callback = function(val) getgenv().RemoveCameraBob = val end })
-    camera:toggle({ name = "reduce camera recoil", callback = function(val) getgenv().ReduceCameraRecoil = val end })
-    camera:slider({ name = "camera recoil reduction", min = 0, max = 100, default = 0, interval = 1,
-        callback = function(val) getgenv().CameraRecoilReduction = val end })
+local config = settings:section({ name = "Theming System", side = "right" })
+config:toggle({
+    name = "Keybind List",
+    flag = "settings_keybind_list",
+    default = false,
+    callback = function(bool) window.toggle_list(bool) end
+})
+config:toggle({
+    name = "Player List",
+    flag = "settings_player_list",
+    default = false,
+    callback = function(bool) window.toggle_playerlist(bool) end
+})
+config:toggle({
+    name = "Watermark",
+    flag = "settings_watermark",
+    default = false,
+    callback = function(bool) window.toggle_watermark(bool) end
+})
+config:keybind({
+    name = "UI Bind",
+    flag = "settings_ui_bind",
+    default = Enum.KeyCode.End,
+    display = "menu",
+    callback = window.set_menu_visibility
+})
+config:slider({
+    name = "Colorpicker Animation Speed",
+    flag = "settings_color_picker_anim_speed",
+    min = 0,
+    max = 5,
+    default = 2,
+    interval = 0.01,
+    suffix = ""
+})
+config:colorpicker({
+    color = Color3.fromHex("#6464FF"),
+    flag = "settings_accent",
+    callback = function(color) library:update_theme("accent", color) end
+})
+config:button({ name = "Copy JobId", callback = function() setclipboard(game.JobId) end })
+config:button({ name = "Copy GameID", callback = function() setclipboard(game.GameId) end })
+config:button({ name = "Copy Join Script", callback = function()
+    setclipboard('game:GetService("TeleportService"):TeleportToPlaceInstance(' .. game.PlaceId .. ', "' .. game.JobId .. '", game.Players.LocalPlayer)')
+end })
+config:button({ name = "Rejoin", callback = function()
+    game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, game.JobId, game.Players.LocalPlayer)
+end })
 
-    local esp = visuals:section({ name = "ESP", side = "right" })
-    esp:toggle({ name = "Box ESP", flag = "esp_box", default = false, callback = function(val) getgenv().BoxESP = val end })
-    esp:toggle({ name = "Box Gradient", flag = "esp_box_gradient", default = false, callback = function(val) getgenv().BoxGradient = val end })
-    esp:toggle({ name = "Box Outline", flag = "esp_box_outline", default = false, callback = function(val) getgenv().BoxOutline = val end })
-    esp:toggle({ name = "Ring ESP", flag = "esp_ring", default = false, callback = function(val) getgenv().RingESP = val end })
-    esp:toggle({ name = "Name ESP", flag = "esp_name", default = false, callback = function(val) getgenv().NameESP = val end })
-    esp:toggle({ name = "Distance ESP", flag = "esp_distance", default = false, callback = function(val) getgenv().DistanceESP = val end })
-end
-
-do
-    local panic = misc:section({ name = "panic", side = "left" })
-    panic:toggle({ name = "panic mode", flag = "misc_panic", default = false, callback = function(val) getgenv().PanicMode = val end })
-    panic:keybind({ name = "panic key", flag = "misc_panic_key", default = Enum.KeyCode.P,
-        callback = function(key)
-            if key and type(key) == "userdata" and typeof(key) == "EnumItem" then
-                getgenv().PanicKey = key
-            else
-                getgenv().PanicKey = Enum.KeyCode.P
-            end
-        end })
-    panic:dropdown({ name = "panic mode selection", flag = "misc_panic_selection", items = { "disable all", "unload" }, multi = false, default = "disable all",
-        callback = function(val) getgenv().PanicAction = val end })
-
-    local antimod = misc:section({ name = "anti mod", side = "right" })
-    antimod:toggle({ name = "anti mod", flag = "misc_antimod", default = false, callback = function(val) getgenv().AntiModEnabled = val end })
-    antimod:toggle({ name = "check mods on load", flag = "misc_antimod_checkonload", default = true, callback = function(val) getgenv().CheckModsOnLoad = val end })
-    antimod:toggle({ name = "group check", flag = "misc_antimod_groupcheck", default = false, callback = function(val) getgenv().GroupCheck = val end })
-    antimod:dropdown({ name = "mod action", flag = "misc_antimod_action", items = { "notify", "crash", "server hop", "kick" }, multi = false, default = "notify",
-        callback = function(val) getgenv().ModAction = val end })
-end
-
-do
-    local configs = window:tab({ name = "configs" })
-    local config = configs:section({ name = "Theming System", side = "right" })
-    config:toggle({ name = "Keybind List", flag = "keybind_list", default = false,
-        callback = function(bool) window.toggle_list(bool) end })
-    config:toggle({ name = "Player List", flag = "player_list", default = false,
-        callback = function(bool) window.toggle_playerlist(bool) end })
-    config:toggle({ name = "Watermark", flag = "watermark", default = false,
-        callback = function(bool) window.toggle_watermark(bool) end })
-    config:keybind({ name = "UI Bind", default = Enum.KeyCode.End, display = "menu",
-        callback = window.set_menu_visibility })
-    config:slider({ name = "Colorpicker Animation Speed", flag = "color_picker_anim_speed", min = 0, max = 5, default = 2, interval = 0.01, suffix = "" })
-    config:colorpicker({ color = Color3.fromHex("#6464FF"), flag = "accent",
-        callback = function(color) library:update_theme("accent", color) end })
-    config:button({ name = "Copy JobId", callback = function() setclipboard(game.JobId) end })
-    config:button({ name = "Copy GameID", callback = function() setclipboard(game.GameId) end })
-    config:button({ name = "Copy Join Script", callback = function()
-        setclipboard('game:GetService("TeleportService"):TeleportToPlaceInstance(' .. game.PlaceId .. ', "' .. game.JobId .. '", game.Players.LocalPlayer)')
-    end })
-    config:button({ name = "Rejoin", callback = function()
-        game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, game.JobId, game.Players.LocalPlayer)
-    end })
-
-    local configs_section = configs:section({ name = "Configuration System", side = "left" })
-    local dir = library.directory .. "/configs/"
-    library.config_holder = configs_section:dropdown({ name = "Configs", items = {}, flag = "config_name_list" })
-    configs_section:textbox({ flag = "config_name_text_box" })
-    configs_section:button({ name = "Create", callback = function()
-        writefile(dir .. flags["config_name_text_box"] .. ".cfg", library:get_config())
-        library:config_list_update()
-    end })
-    configs_section:button({ name = "Delete", callback = function()
-        library:panel({
-            name = "Are you sure you want to delete " .. flags["config_name_list"] .. " ?",
-            options = { "Yes", "No" },
-            callback = function(option)
-                if option == "Yes" then
-                    delfile(dir .. flags["config_name_list"] .. ".cfg")
-                    library:config_list_update()
-                end
-            end,
-        })
-    end })
-    configs_section:button({ name = "Load", callback = function()
-        library:load_config(readfile(dir .. flags["config_name_list"] .. ".cfg"))
-    end })
-    configs_section:button({ name = "Save", callback = function()
-        writefile(dir .. flags["config_name_text_box"] .. ".cfg", library:get_config())
-        library:config_list_update()
-    end })
-    configs_section:button({ name = "Unload Config", callback = function() library:load_config(old_config) end })
-    configs_section:button({ name = "Unload Menu", callback = function() library:unload() end })
-
-    configs:hitpart_picker({ name = "Multihitpart Picker", side = "left", flag = "multihitpart_picker", default = { "Head" }, multi = true, type = "R6",
-        callback = function(parts) table.foreach(parts, print) end })
-    configs:hitpart_picker({ name = "Singlehitpart Picker", side = "right", flag = "singlehitpart_picker", default = { "Head" }, multi = false, type = "R15",
-        callback = function(parts) table.foreach(parts, print) end })
-
+local configs_section = settings:section({ name = "Configuration System", side = "left" })
+local dir = library.directory .. "/configs/"
+library.config_holder = configs_section:dropdown({
+    name = "Configs",
+    flag = "settings_config_name_list",
+    items = {}
+})
+configs_section:textbox({ flag = "settings_config_name_text_box" })
+configs_section:button({ name = "Create", callback = function()
+    writefile(dir .. flags["settings_config_name_text_box"] .. ".cfg", library:get_config())
     library:config_list_update()
-end
+end })
+configs_section:button({ name = "Delete", callback = function()
+    library:panel({
+        name = "Are you sure you want to delete " .. flags["settings_config_name_list"] .. " ?",
+        options = { "Yes", "No" },
+        callback = function(option)
+            if option == "Yes" then
+                delfile(dir .. flags["settings_config_name_list"] .. ".cfg")
+                library:config_list_update()
+            end
+        end,
+    })
+end })
+configs_section:button({ name = "Load", callback = function()
+    library:load_config(readfile(dir .. flags["settings_config_name_list"] .. ".cfg"))
+end })
+configs_section:button({ name = "Save", callback = function()
+    writefile(dir .. flags["settings_config_name_text_box"] .. ".cfg", library:get_config())
+    library:config_list_update()
+end })
+configs_section:button({ name = "Unload Config", callback = function() library:load_config(old_config) end })
+configs_section:button({ name = "Unload Menu", callback = function() library:unload() end })
 
-for i = 1, 1 do
-    library:notification({ text = "Astra loaded..." })
-end
+library:config_list_update()
+combat.open_tab()
+library:notification({ text = "Astra UI loaded." })
 
-legit.open_tab()
 return library
