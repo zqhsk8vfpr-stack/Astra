@@ -1,3 +1,4 @@
+loadstring([[
 local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/i77lhm/vaderpaste/refs/heads/main/library.lua"))()
 if not library then error("UI library failed to load") end
 local flags = library.flags
@@ -199,7 +200,7 @@ aimbotSection:dropdown({
     items = { "Direct", "Closest", "Nearest" },
     multi = false,
     default = "Direct",
-    tooltip = "How the aimbot selects which part to aim at: Direct = fixed part, Closest = closest to crosshair, Nearest = closest in 3D space",
+    tooltip = "How the aimbot selects which part to aim at: Direct = fixed part, Closest = closest to crosshair, Nearest = nearest in 3D space",
     callback = function(val) getgenv().HitpartSelection = val end,
 })
 
@@ -1028,3 +1029,4 @@ combat.open_tab()
 library:notification({ text = "Astra UI loaded." })
 
 return library
+]])()
