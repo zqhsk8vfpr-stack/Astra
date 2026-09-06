@@ -808,13 +808,16 @@ autoBuySection:dropdown({
     name = "Food to Buy",
     flag = "misc_autobuy_food_list",
     items = {
-        "Burger",
-        "Chicken",
-        "Donut",
-        "Pizza",
-        "Popcorn",
-        "Taco",
-        "Sauce",
+        "[Burger]",
+        "[Chicken]",
+        "[Donut]",
+        "[Pizza]",
+        "[Popcorn]",
+        "[Taco]",
+        "[Sauce] - 5 Stomps",
+        "[Super Pizza] - 5 Stomps",
+        "[Super Armor] - 5 Stomps",
+        
     },
     multi = true,
     default = {},
@@ -825,21 +828,33 @@ autoBuySection:dropdown({
 })
 
 autoBuySection:toggle({
+    name = "Auto Eat",
+    flag = "misc_autoeat",
+    default = false,
+    tooltip = "Auto eat food when health lowers",
+    callback = function(val)
+         getgenv().AutoEat = val end,
+
+})
+
+
+autoBuySection:toggle({
     name = "Auto Buy Weapons",
     flag = "misc_autobuy_weapons",
     default = false,
     tooltip = "Automatically buy selected weapons when near a buy pad",
     callback = function(val) getgenv().AutoBuyWeapons = val end,
+
 })
 
 autoBuySection:dropdown({
     name = "Weapons to Buy",
     flag = "misc_autobuy_weapons_list",
     items = {
-        "USP",
-        "Shotgun",
-        "Tactical Shotgun",
-        "Silencer",
+        "[USP]",
+        "[Shotgun]",
+        "[Tactical Shotgun]",
+        "[Silencer]",
     },
     multi = true,
     default = {},
