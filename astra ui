@@ -817,7 +817,6 @@ autoBuySection:dropdown({
         "[Sauce] - 5 Stomps",
         "[Super Pizza] - 5 Stomps",
         "[Super Armor] - 5 Stomps",
-        
     },
     multi = true,
     default = {},
@@ -831,12 +830,11 @@ autoBuySection:toggle({
     name = "Auto Eat",
     flag = "misc_autoeat",
     default = false,
-    tooltip = "Auto eat food when health lowers",
+    tooltip = "Auto eats food when health lowers",
     callback = function(val)
-         getgenv().AutoEat = val end,
-
+        getgenv().AutoEat = val
+    end,
 })
-
 
 autoBuySection:toggle({
     name = "Auto Buy Weapons",
@@ -844,7 +842,6 @@ autoBuySection:toggle({
     default = false,
     tooltip = "Automatically buy selected weapons when near a buy pad",
     callback = function(val) getgenv().AutoBuyWeapons = val end,
-
 })
 
 autoBuySection:dropdown({
@@ -887,7 +884,6 @@ autoBuySection:slider({
     tooltip = "Max distance to a buyable item",
     callback = function(val) getgenv().AutoBuyProximity = val end,
 })
-
 local antiModSection = misc:section({ name = "Anti Mod", side = "right" })
 
 antiModSection:toggle({
