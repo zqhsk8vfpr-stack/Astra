@@ -802,29 +802,7 @@ autoBuySection:toggle({
     default = false,
     tooltip = "Automatically buy selected food items when near a buy pad",
     callback = function(val) getgenv().AutoBuyFood = val end,
-})
-
-autoBuySection:dropdown({
-    name = "Food to Buy",
-    flag = "misc_autobuy_food_list",
-    items = {
-        "[Burger]",
-        "[Chicken]",
-        "[Donut]",
-        "[Pizza]",
-        "[Popcorn]",
-        "[Taco]",
-        "[Sauce] - 5 Stomps",
-        "[Super Pizza] - 5 Stomps",
-        "[Super Armor] - 5 Stomps",
-    },
-    multi = true,
-    default = {},
-    tooltip = "Select which food items to buy automatically",
-    callback = function(val)
-        getgenv().AutoBuyFoodList = val
-    end,
-})
+}
 
 autoBuySection:toggle({
     name = "Auto Eat",
@@ -843,23 +821,6 @@ autoBuySection:toggle({
     tooltip = "Automatically buy selected weapons when near a buy pad",
     callback = function(state) getgenv().AutoBuygun = state
     end
-})
-
-autoBuySection:dropdown({
-    name = "Gun to Buy",
-    flag = "misc_autobuy_gun_list",
-    items = {
-        "[USP]",
-        "[Shotgun]",
-        "[Tactical Shotgun]",
-        "[Silencer]",
-    },
-    multi = true,
-    default = {},
-    tooltip = "Select which weapons to buy automatically",
-    callback = function(val)
-        getgenv().SelectedGun = val
-    end,
 })
 
 autoBuySection:slider({
