@@ -837,16 +837,17 @@ autoBuySection:toggle({
 })
 
 autoBuySection:toggle({
-    name = "Auto Buy Weapons",
-    flag = "misc_autobuy_weapons",
+    name = "Auto Buy Gun",
+    flag = "misc_autobuy_gun",
     default = false,
     tooltip = "Automatically buy selected weapons when near a buy pad",
-    callback = function(val) getgenv().AutoBuyWeapons = val end,
+    callback = function(state) getgenv().AutoBuygun = state
+    end
 })
 
 autoBuySection:dropdown({
-    name = "Weapons to Buy",
-    flag = "misc_autobuy_weapons_list",
+    name = "Gun to Buy",
+    flag = "misc_autobuy_gun_list",
     items = {
         "[USP]",
         "[Shotgun]",
@@ -857,7 +858,7 @@ autoBuySection:dropdown({
     default = {},
     tooltip = "Select which weapons to buy automatically",
     callback = function(val)
-        getgenv().AutoBuyWeaponsList = val
+        getgenv().SelectedGun = val
     end,
 })
 
