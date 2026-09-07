@@ -802,7 +802,7 @@ autoBuySection:toggle({
     default = false,
     tooltip = "Automatically buy selected food items when near a buy pad",
     callback = function(val) getgenv().AutoBuyFood = val end,
-}
+})
 
 autoBuySection:toggle({
     name = "Auto Eat",
