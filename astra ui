@@ -997,5 +997,5 @@ configs_section:button({ name = "Unload Menu", callback = function() library:unl
 library:config_list_update()
 combat.open_tab()
 library:notification({ text = "Astra UI loaded." })
-
+_G.library = library
 return library
