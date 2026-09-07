@@ -1,4 +1,4 @@
-loadstring([[
+-- UI Script (must load first)
 local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/i77lhm/vaderpaste/refs/heads/main/library.lua"))()
 if not library then error("UI library failed to load") end
 local flags = library.flags
@@ -191,7 +191,7 @@ aimbotSection:toggle({
     flag = "combat_target_outline",
     default = false,
     tooltip = "Camlock targets closest outline of enemy",
-    callback = function(val) getgenv().TargetOutline = val end,
+    callback = function(val) getgenv().OutlineAssist = val end,
 })
 
 aimbotSection:dropdown({
@@ -803,15 +803,12 @@ autoBuySection:toggle({
     tooltip = "Automatically buy selected food items when near a buy pad",
     callback = function(val) getgenv().AutoBuyFood = val end,
 })
-
 autoBuySection:toggle({
     name = "Auto Eat",
     flag = "misc_autoeat",
     default = false,
     tooltip = "Auto eats food when health lowers",
-    callback = function(val)
-        getgenv().AutoEat = val
-    end,
+    callback = function(val) getgenv().AutoEat = val end,
 })
 
 autoBuySection:toggle({
@@ -819,8 +816,7 @@ autoBuySection:toggle({
     flag = "misc_autobuy_gun",
     default = false,
     tooltip = "Automatically buy selected weapons when near a buy pad",
-    callback = function(state) getgenv().AutoBuygun = state
-    end
+    callback = function(val) getgenv().AutoBuyGun = val end,
 })
 
 autoBuySection:slider({
@@ -846,6 +842,7 @@ autoBuySection:slider({
     tooltip = "Max distance to a buyable item",
     callback = function(val) getgenv().AutoBuyProximity = val end,
 })
+
 local antiModSection = misc:section({ name = "Anti Mod", side = "right" })
 
 antiModSection:toggle({
@@ -1002,4 +999,3 @@ combat.open_tab()
 library:notification({ text = "Astra UI loaded." })
 
 return library
-]])()
