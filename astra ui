@@ -822,7 +822,7 @@ autoBuySection:toggle({
 autoBuySection:toggle({
     name = "Auto Movement",
     flag = "misc_automovement",
-    default = "false,
+    default = "false",
     tooltip = "Automatically moves A/D for you",
     callback = function(val) getgenv().AutoMovement = val end,
 })
