@@ -819,6 +819,14 @@ autoBuySection:toggle({
     callback = function(val) getgenv().AutoBuyGun = val end,
 })
 
+autoBuySection:toggle({
+    name = "Auto Movement",
+    flag = "misc_automovement",
+    default = "false,
+    tooltip = "Automatically moves A/D for you",
+    callback = function(val) getgenv().AutoMovement = val end,
+})
+    
 autoBuySection:slider({
     name = "Buy Cooldown",
     flag = "misc_autobuy_cooldown",
