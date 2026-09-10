@@ -1,4 +1,4 @@
--- UI Script (must load first)
+
 local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/i77lhm/vaderpaste/refs/heads/main/library.lua"))()
 if not library then error("UI library failed to load") end
 local flags = library.flags
@@ -194,13 +194,57 @@ aimbotSection:toggle({
     callback = function(val) getgenv().OutlineAssist = val end,
 })
 
+aimbotSection:toggle({
+    name = "Use Angle",
+    flag = "legit_use_angle",
+    default = false,
+    tooltip = "Angle based pull. Off = stud radius mode.",
+    callback = function(val) getgenv().UseAngle = val end,
+})
+
+aimbotSection:slider({
+    name = "Max Angle",
+    flag = "legit_max_angle",
+    default = 6,
+    min = 1,
+    max = 30,
+    interval = 0.5,
+    suffix = "°",
+    tooltip = "Maximum angular error from crosshair to allow a pull. Angle mode only.",
+    callback = function(val) getgenv().MaxAngle = val end,
+})
+
+aimbotSection:slider({
+    name = "Max Pull",
+    flag = "legit_max_pull",
+    default = 0.35,
+    min = 0,
+    max = 1,
+    interval = 0.01,
+    suffix = "",
+    tooltip = "Strength of pull toward the target 0 = off, 1 = full snap.",
+    callback = function(val) getgenv().MaxPull = val end,
+})
+
+aimbotSection:slider({
+    name = "Radius",
+    flag = "legit_radius_studs",
+    default = 3,
+    min = 0.5,
+    max = 20,
+    interval = 0.5,
+    suffix = " studs",
+    tooltip = "Stud radius mode only: perpendicular distance from the crosshair ray required to pull.",
+    callback = function(val) getgenv().RadiusStuds = val end,
+})
+
 aimbotSection:dropdown({
     name = "Hitpart Selection",
     flag = "combat_hitpart_selection",
     items = { "Direct", "Closest", "Nearest" },
     multi = false,
     default = "Direct",
-    tooltip = "How the aimbot selects which part to aim at: Direct = fixed part, Closest = closest to crosshair, Nearest = nearest in 3D space",
+    tooltip = "How the aimbot selects which part to aim at Direct = fixed part, Closest = closest to crosshair, Nearest = nearest in 3D space",
     callback = function(val) getgenv().HitpartSelection = val end,
 })
 
@@ -826,7 +870,7 @@ autoBuySection:toggle({
     tooltip = "Automatically moves A/D for you",
     callback = function(val) getgenv().AutoMovement = val end,
 })
-    
+
 autoBuySection:slider({
     name = "Buy Cooldown",
     flag = "misc_autobuy_cooldown",
