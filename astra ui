@@ -576,17 +576,6 @@ silentSection:toggle({
     callback = function(val) getgenv().SilentAimForcefieldCheck = val end,
 })
 
-silentSection:textbox({
-    name = "Enemy Switching Delay",
-    flag = "combat_silent_switching_delay",
-    default = "",
-    placeholder = "Enemy switching delay",
-    tooltip = "Time before switching to a new target",
-    callback = function(val)
-        local num = tonumber(val)
-        if num then getgenv().SilentAimEnemySwitchDelay = num else getgenv().SilentAimEnemySwitchDelay = nil end
-    end,
-})
 
 local espSection = visuals:section({ name = "ESP" })
 
@@ -607,14 +596,6 @@ espSection:toggle({
 })
 
 espSection:toggle({
-    name = "Box 3D",
-    flag = "visuals_box_3d",
-    default = false,
-    tooltip = "Draw a 3D box around players",
-    callback = function(val) getgenv().Box3D = val end,
-})
-
-espSection:toggle({
     name = "Name",
     flag = "visuals_name",
     default = false,
@@ -628,22 +609,6 @@ espSection:toggle({
     default = false,
     tooltip = "Show distance to players",
     callback = function(val) getgenv().DistanceESP = val end,
-})
-
-espSection:toggle({
-    name = "Health Bar",
-    flag = "visuals_healthbar",
-    default = false,
-    tooltip = "Show health bars above players",
-    callback = function(val) getgenv().HealthBar = val end,
-})
-
-espSection:toggle({
-    name = "Tracers",
-    flag = "visuals_tracers",
-    default = false,
-    tooltip = "Draw lines from your position to players",
-    callback = function(val) getgenv().Tracers = val end,
 })
 
 espSection:toggle({
