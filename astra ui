@@ -761,40 +761,6 @@ featureSection:toggle({
     callback = function(val) getgenv().NoSpread = val end,
 })
 
-local panicSection = misc:section({ name = "Panic", side = "left" })
-
-panicSection:toggle({
-    name = "Panic Mode",
-    flag = "misc_panic",
-    default = false,
-    tooltip = "Enable panic mode keybind",
-    callback = function(val) getgenv().PanicMode = val end,
-})
-
-panicSection:keybind({
-    name = "Panic Key",
-    flag = "misc_panic_key",
-    default = Enum.KeyCode.P,
-    tooltip = "Key to trigger panic mode",
-    callback = function(newKey)
-        if newKey and type(newKey) == "userdata" and typeof(newKey) == "EnumItem" then
-            getgenv().PanicKey = newKey
-        else
-            getgenv().PanicKey = Enum.KeyCode.P
-        end
-    end,
-})
-
-panicSection:dropdown({
-    name = "Panic Action",
-    flag = "misc_panic_action",
-    items = { "Disable all", "Unload" },
-    multi = false,
-    default = "Disable all",
-    tooltip = "Action to perform when panic key is pressed",
-    callback = function(val) getgenv().PanicAction = val end,
-})
-
 local autoBuySection = misc:section({ name = "Auto Buy", side = "left" })
 
 autoBuySection:toggle({
