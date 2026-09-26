@@ -458,7 +458,7 @@ silentSection:toggle({
     name = "Anti Aimviewer",
     flag = "combat_silent_anti_aimview",
     default = false,
-    tooltip = "Prevents the aimbot from adjusting your camera view (keep your aim still)",
+    tooltip = "shows your real aim",
     callback = function(val) getgenv().SilentAimAntiAimView = val end,
 })
 
@@ -619,32 +619,6 @@ espSection:toggle({
     callback = function(val) getgenv().Targets = val end,
 })
 
-local worldSection = visuals:section({ name = "World", side = "right" })
-
-worldSection:toggle({
-    name = "Rain",
-    flag = "visuals_rain",
-    default = false,
-    tooltip = "Enable rain effect",
-    callback = function(val) getgenv().Rain = val end,
-})
-
-worldSection:toggle({
-    name = "Snow",
-    flag = "visuals_snow",
-    default = false,
-    tooltip = "Enable snow effect",
-    callback = function(val) getgenv().Snow = val end,
-})
-
-worldSection:toggle({
-    name = "Trails",
-    flag = "visuals_trails",
-    default = false,
-    tooltip = "Show trails behind players",
-    callback = function(val) getgenv().Trails = val end,
-})
-
 local gunSection = weapons:section({ name = "Gun Config" })
 
 gunSection:toggle({
@@ -733,7 +707,7 @@ featureSection:toggle({
     name = "Prefire",
     flag = "weapons_prefire",
     default = false,
-    tooltip = "Enable prefire: automatically fire when enemy is about to peek",
+    tooltip = "Enable prefire automatically fire when enemy is about to peek",
     callback = function(val) getgenv().Prefire = val end,
 })
 
@@ -792,14 +766,6 @@ autoBuySection:toggle({
     default = false,
     tooltip = "Automatically buy selected weapons when near a buy pad",
     callback = function(val) getgenv().AutoBuyGun = val end,
-})
-
-autoBuySection:toggle({
-    name = "Auto Movement",
-    flag = "misc_automovement",
-    default = "false",
-    tooltip = "Automatically moves A/D for you",
-    callback = function(val) getgenv().AutoMovement = val end,
 })
 
 autoBuySection:slider({
